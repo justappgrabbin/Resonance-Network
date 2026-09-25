@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paper Seed - The Living Tree 🌱</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    #root {
+      min-height: 100vh;
+    }
+
+    /* Loading State */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-size: 2rem;
+    }
+
+    /* Causal Graph Styles */
+    .graph-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      opacity: 0.3;
+    }
+
+    .node-label {
+      font-size: 10px;
+      fill: #10B981;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="loading">🌱 Growing the tree...</div>
+  </div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // Icon components (simple SVG versions)
+    const Icons = {
+      Sprout: () => <span style={{display: 'inline-block', fontSize: '1em'}}>🌱</span>,
+      Users: () => <span style={{display: 'inline-block', fontSize: '1em'}}>👥</span>,
+      Heart: () => <span style={{display: 'inline-block', fontSize: '1em'}}>💚</span>,
+      Brain: () => <span style={{display: 'inline-block', fontSize: '1em'}}>🧠</span>,
+      Zap: () => <span style={{display: 'inline-block', fontSize: '1em'}}>⚡</span>,
+      Plus: () => <span style={{display: 'inline-block', fontSize: '1em'}}>➕</span>,
+      Info: () => <span style={{display: 'inline-block', fontSize: '1em'}}>ℹ️</span>,
+      X: () => <span style={{display: 'inline-block', fontSize: '1em'}}>✖️</span>,
+      Activity: () => <span style={{display: 'inline-block', fontSize: '1em'}}>📊</span>,
+      TreeDeciduous: () => <span style={{display: 'inline-block', fontSize: '1em'}}>🌳</span>,
+      Sparkles: () => <span style={{display: 'inline-block', fontSize: '1em'}}>✨</span>,
+      BookOpen: () => <span style={{display: 'inline-block', fontSize: '1em'}}>📖</span>,
+      Target: () => <span style={{display: 'inline-block', fontSize: '1em'}}>🎯</span>,
+      Shield: () => <span style={{display: 'inline-block', fontSize: '1em'}}>🛡️</span>,
+      TrendingUp: () => <span style={{display: 'inline-block', fontSize: '1em'}}>📈</span>,
+      Leaf: () => <span style={{display: 'inline-block', fontSize: '1em'}}>🍃</span>,
+      CheckCircle: () => <span style={{display: 'inline-block', fontSize: '1em'}}>✅</span>,
+      Circle: () => <span style={{display: 'inline-block', fontSize: '1em'}}>⭕</span>,
+      GitBranch: () => <span style={{display: 'inline-block', fontSize: '1em'}}>🌿</span>,
+    };
+
+    function PaperSeedLivingTree() {
+      // CORE STATE
+      const [treeGrowth, setTreeGrowth] = useState(0);
+      const [participants, setParticipants] = useState([]);
+      const [currentView, setCurrentView] = useState('tree');
+      const [selectedGate, setSelectedGate] = useState(null);
+      const [isGrowing, setIsGrowing] = useState(false);
+      const [showInfo, setShowInfo] = useState(false);
+      const [showGraph, setShowGraph] = useState(false);
+
+      const canvasRef = useRef(null);
+
+      // ORGANISM HEALTH
+      const [organismHealth, setOrganismHealth] = useState({
+        overall: 0,
+        coherence: 100,
+        vitality: 0,
+        diversity: 0,
+        autonomy: 0
+      });
+
+      // GATE HEALTH
+      const [gateHealth, setGateHealth] = useState({});
+
+      // Initialize gate health
+      useEffect(() => {
+        const initialGates = {};
+        for (let i = 1; i <= 64; i++) {
+          initialGates[i] = {
+            health: 0,
+            contributors: [],
+            nourishment: 0,
+            education_level: 0
+          };
+        }
+        setGateHealth(initialGates);
+      }, []);
+
+      // GATE DEFINITIONS
+      const GATE_INFO = {
+        1: { name: 'Self-Expression', role: 'Creative Liver', teaches: 'Authentic creation', stream: 'emotional', center: 'g' },
+        2: { name: 'Receptivity', role: 'Allowing Kidney', teaches: 'Receiving support', stream: 'emotional', center: 'g' },
+        3: { name: 'Ordering', role: 'Innovation Heart', teaches: 'New beginnings', stream: 'body', center: 'sacral' },
+        4: { name: 'Answers', role: 'Understanding Brain', teaches: 'Mental clarity', stream: 'mental', center: 'ajna' },
+        5: { name: 'Waiting', role: 'Patience Organ', teaches: 'Natural timing', stream: 'body', center: 'sacral' },
+        6: { name: 'Friction', role: 'Intimacy Heart', teaches: 'Deep connection', stream: 'emotional', center: 'solar' },
+        7: { name: 'Army', role: 'Direction Compass', teaches: 'Leadership', stream: 'emotional', center: 'g' },
+        8: { name: 'Contribution', role: 'Modeling Voice', teaches: 'Authentic expression', stream: 'mental', center: 'throat' },
+        9: { name: 'Focus', role: 'Detail Eye', teaches: 'Concentration', stream: 'body', center: 'sacral' },
+        10: { name: 'Self-Love', role: 'Behavior Mirror', teaches: 'Self-acceptance', stream: 'emotional', center: 'g' },
+        11: { name: 'Ideas', role: 'Peace Fountain', teaches: 'Mental peace', stream: 'mental', center: 'ajna' },
+        12: { name: 'Standstill', role: 'Caution Guard', teaches: 'Thoughtful speech', stream: 'mental', center: 'throat' },
+        13: { name: 'Fellowship', role: 'Listening Ear', teaches: 'Deep listening', stream: 'emotional', center: 'g' },
+        14: { name: 'Power', role: 'Energy Generator', teaches: 'Sustainable power', stream: 'body', center: 'sacral' },
+        15: { name: 'Extremes', role: 'Rhythm Keeper', teaches: 'Natural flow', stream: 'emotional', center: 'g' },
+        16: { name: 'Skills', role: 'Enthusiasm Spark', teaches: 'Mastery joy', stream: 'mental', center: 'throat' },
+        17: { name: 'Opinions', role: 'Pattern Recognizer', teaches: 'Mental organization', stream: 'mental', center: 'ajna' },
+        18: { name: 'Correction', role: 'Perfection Refiner', teaches: 'Improvement', stream: 'body', center: 'spleen' },
+        19: { name: 'Approach', role: 'Needs Sensor', teaches: 'Sensitivity', stream: 'body', center: 'root' },
+        20: { name: 'Now', role: 'Presence Anchor', teaches: 'Being here', stream: 'mental', center: 'throat' },
+        21: { name: 'Control', role: 'Authority Holder', teaches: 'Self-management', stream: 'emotional', center: 'heart' },
+        22: { name: 'Grace', role: 'Openness Door', teaches: 'Receptive beauty', stream: 'emotional', center: 'solar' },
+        23: { name: 'Assimilation', role: 'Knowing Voice', teaches: 'Clear expression', stream: 'mental', center: 'throat' },
+        24: { name: 'Return', role: 'Rationalization Mind', teaches: 'Mental processing', stream: 'mental', center: 'ajna' },
+        25: { name: 'Innocence', role: 'Spirit Light', teaches: 'Natural being', stream: 'emotional', center: 'g' },
+        26: { name: 'Taming Power', role: 'Integrity Core', teaches: 'Will alignment', stream: 'emotional', center: 'heart' },
+        27: { name: 'Nourishment', role: 'Caring Heart', teaches: 'Responsible care', stream: 'body', center: 'sacral' },
+        28: { name: 'Risk', role: 'Purpose Warrior', teaches: 'Meaningful struggle', stream: 'body', center: 'spleen' },
+        29: { name: 'Perseverance', role: 'Commitment Anchor', teaches: 'Depth dedication', stream: 'body', center: 'sacral' },
+        30: { name: 'Feelings', role: 'Recognition Flame', teaches: 'Emotional awareness', stream: 'emotional', center: 'solar' },
+        31: { name: 'Influence', role: 'Leadership Voice', teaches: 'Natural authority', stream: 'mental', center: 'throat' },
+        32: { name: 'Continuity', role: 'Conservation Vault', teaches: 'Preservation', stream: 'body', center: 'spleen' },
+        33: { name: 'Retreat', role: 'Privacy Shield', teaches: 'Healthy boundaries', stream: 'mental', center: 'throat' },
+        34: { name: 'Power', role: 'Strength Generator', teaches: 'Raw energy', stream: 'body', center: 'sacral' },
+        35: { name: 'Progress', role: 'Experience Seeker', teaches: 'Growth adventures', stream: 'mental', center: 'throat' },
+        36: { name: 'Crisis', role: 'Experience Depths', teaches: 'Emotional mastery', stream: 'emotional', center: 'solar' },
+        37: { name: 'Family', role: 'Community Bond', teaches: 'Tribal care', stream: 'emotional', center: 'solar' },
+        38: { name: 'Fighter', role: 'Opposition Force', teaches: 'Healthy resistance', stream: 'body', center: 'root' },
+        39: { name: 'Provocation', role: 'Spirit Stirrer', teaches: 'Emotional catalyst', stream: 'body', center: 'root' },
+        40: { name: 'Aloneness', role: 'Restoration Space', teaches: 'Renewal', stream: 'emotional', center: 'heart' },
+        41: { name: 'Contraction', role: 'Fantasy Dreamer', teaches: 'Imagination', stream: 'body', center: 'root' },
+        42: { name: 'Growth', role: 'Completion Engine', teaches: 'Finishing', stream: 'body', center: 'sacral' },
+        43: { name: 'Insight', role: 'Breakthrough Light', teaches: 'Sudden knowing', stream: 'mental', center: 'ajna' },
+        44: { name: 'Alertness', role: 'Pattern Detector', teaches: 'Recognition', stream: 'body', center: 'spleen' },
+        45: { name: 'Gathering', role: 'Ownership King', teaches: 'Resource mastery', stream: 'mental', center: 'throat' },
+        46: { name: 'Serendipity', role: 'Love Body', teaches: 'Being in body', stream: 'emotional', center: 'g' },
+        47: { name: 'Oppression', role: 'Realization Mind', teaches: 'Mental breakthrough', stream: 'mental', center: 'ajna' },
+        48: { name: 'Depth', role: 'Intuition Well', teaches: 'Deep knowing', stream: 'body', center: 'spleen' },
+        49: { name: 'Revolution', role: 'Principles Core', teaches: 'Value alignment', stream: 'emotional', center: 'solar' },
+        50: { name: 'Values', role: 'Responsibility Heart', teaches: 'Duty care', stream: 'body', center: 'spleen' },
+        51: { name: 'Shock', role: 'Initiative Bolt', teaches: 'Quick action', stream: 'emotional', center: 'heart' },
+        52: { name: 'Stillness', role: 'Concentration Pool', teaches: 'Deep focus', stream: 'body', center: 'root' },
+        53: { name: 'Beginnings', role: 'Development Seed', teaches: 'Starting well', stream: 'body', center: 'root' },
+        54: { name: 'Ambition', role: 'Drive Engine', teaches: 'Upward movement', stream: 'body', center: 'root' },
+        55: { name: 'Abundance', role: 'Spirit Overflow', teaches: 'Emotional depth', stream: 'emotional', center: 'solar' },
+        56: { name: 'Stimulation', role: 'Storytelling Voice', teaches: 'Narrative art', stream: 'mental', center: 'throat' },
+        57: { name: 'Intuition', role: 'Clarity Lightning', teaches: 'Instant knowing', stream: 'body', center: 'spleen' },
+        58: { name: 'Vitality', role: 'Joy Source', teaches: 'Life force', stream: 'body', center: 'root' },
+        59: { name: 'Intimacy', role: 'Sexuality Fire', teaches: 'Deep merging', stream: 'body', center: 'sacral' },
+        60: { name: 'Limitation', role: 'Acceptance Ground', teaches: 'Working with limits', stream: 'body', center: 'root' },
+        61: { name: 'Inner Truth', role: 'Mystery Portal', teaches: 'Unknowing wisdom', stream: 'mental', center: 'head' },
+        62: { name: 'Detail', role: 'Expression Precision', teaches: 'Exact communication', stream: 'mental', center: 'throat' },
+        63: { name: 'Doubt', role: 'Logic Processor', teaches: 'Questioning mind', stream: 'mental', center: 'head' },
+        64: { name: 'Confusion', role: 'Inspiration Spark', teaches: 'Creative questions', stream: 'mental', center: 'head' }
+      };
+
+      // Gate connections (simplified - major channels)
+      const GATE_CONNECTIONS = [
+        [1, 8], [2, 14], [3, 60], [4, 63], [5, 15], [6, 59], [7, 31],
+        [9, 52], [10, 20], [10, 34], [11, 56], [12, 22], [13, 33],
+        [16, 48], [17, 62], [18, 58], [19, 49], [21, 45], [23, 43],
+        [24, 61], [25, 51], [26, 44], [27, 50], [28, 38], [29, 46],
+        [30, 41], [32, 54], [35, 36], [37, 40], [39, 55], [42, 53],
+        [47, 64], [57, 20], [57, 10], [34, 57], [34, 10], [34, 20]
+      ];
+
+      const [joinForm, setJoinForm] = useState({
+        name: '',
+        interests: '',
+        skills: '',
+        intention: ''
+      });
+
+      // Draw causal graph
+      useEffect(() => {
+        if (!showGraph || !canvasRef.current) return;
+
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Calculate node positions in a circle
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = Math.min(canvas.width, canvas.height) * 0.35;
+
+        const nodePositions = {};
+        Object.keys(GATE_INFO).forEach((gateNum, index) => {
+          const angle = (index / 64) * Math.PI * 2 - Math.PI / 2;
+          nodePositions[gateNum] = {
+            x: centerX + Math.cos(angle) * radius,
+            y: centerY + Math.sin(angle) * radius
+          };
+        });
+
+        // Draw connections
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.2)';
+        ctx.lineWidth = 1;
+        GATE_CONNECTIONS.forEach(([gate1, gate2]) => {
+          const pos1 = nodePositions[gate1];
+          const pos2 = nodePositions[gate2];
+          if (pos1 && pos2) {
+            ctx.beginPath();
+            ctx.moveTo(pos1.x, pos1.y);
+            ctx.lineTo(pos2.x, pos2.y);
+            ctx.stroke();
+          }
+        });
+
+        // Draw nodes
+        Object.entries(nodePositions).forEach(([gateNum, pos]) => {
+          const health = gateHealth[gateNum]?.health || 0;
+          const color = health > 70 ? '#10B981' : health > 40 ? '#FFE66D' : '#FF6B9D';
+          
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+
+          // Draw gate number
+          ctx.fillStyle = '#10B981';
+          ctx.font = '10px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(gateNum, pos.x, pos.y - 8);
+        });
+
+      }, [showGraph, gateHealth]);
+
+      const joinOrganism = () => {
+        if (!joinForm.name) {
+          alert('Please enter your name');
+          return;
+        }
+
+        const assignedGates = assignGatesForPerson(joinForm);
+        
+        const newParticipant = {
+          id: Date.now(),
+          name: joinForm.name,
+          gates: assignedGates,
+          joinedAt: new Date(),
+          contribution: 0
+        };
+
+        setParticipants(prev => [...prev, newParticipant]);
+
+        const updatedGates = { ...gateHealth };
+        assignedGates.forEach(gateNum => {
+          if (updatedGates[gateNum]) {
+            updatedGates[gateNum].contributors.push(newParticipant.id);
+            updatedGates[gateNum].nourishment += 10;
+            updatedGates[gateNum].health = Math.min(100, updatedGates[gateNum].health + 15);
+          }
+        });
+        setGateHealth(updatedGates);
+
+        setTreeGrowth(prev => Math.min(100, prev + 5));
+        setIsGrowing(true);
+        setTimeout(() => setIsGrowing(false), 2000);
+
+        calculateOrganismHealth(participants.length + 1, updatedGates);
+
+        setJoinForm({ name: '', interests: '', skills: '', intention: '' });
+        setCurrentView('tree');
+        
+        alert(`🌱 Welcome ${newParticipant.name}!\n\nYou're nourishing gates: ${assignedGates.join(', ')}\n\nThe organism grows stronger with you! 🌳`);
+      };
+
+      const assignGatesForPerson = (form) => {
+        const gates = [];
+        const interests = form.interests.toLowerCase();
+        const skills = form.skills.toLowerCase();
+        
+        if (interests.includes('physical') || interests.includes('health') || interests.includes('body')) {
+          gates.push(5, 14, 34);
+        }
+        
+        if (interests.includes('emotion') || interests.includes('feel') || interests.includes('heart')) {
+          gates.push(6, 37, 55);
+        }
+        
+        if (interests.includes('think') || interests.includes('logic') || interests.includes('mind')) {
+          gates.push(4, 17, 63);
+        }
+        
+        if (gates.length === 0) {
+          gates.push(1, 25, 46);
+        }
+        
+        return gates.slice(0, 5);
+      };
+
+      const calculateOrganismHealth = (participantCount, gates) => {
+        const totalGates = 64;
+        const healthyGates = Object.values(gates).filter(g => g.health > 50).length;
+        
+        setOrganismHealth({
+          overall: Math.round((healthyGates / totalGates) * 100),
+          coherence: Math.max(0, 100 - (participantCount * 0.5)),
+          vitality: Math.round((participantCount / 100) * 100),
+          diversity: Math.round((healthyGates / totalGates) * 100),
+          autonomy: Math.min(100, Math.round((participantCount / 50) * 100))
+        });
+      };
+
+      const TreeView = () => {
+        const getTreeSize = () => {
+          if (treeGrowth < 20) return { width: 100, height: 120, emoji: '🌱' };
+          if (treeGrowth < 40) return { width: 150, height: 180, emoji: '🌿' };
+          if (treeGrowth < 60) return { width: 200, height: 240, emoji: '🌳' };
+          if (treeGrowth < 80) return { width: 250, height: 300, emoji: '🌲' };
+          return { width: 300, height: 360, emoji: '🏞️' };
+        };
+
+        const tree = getTreeSize();
+
+        return (
+          <div className="tree-view">
+            <div className="tree-container" style={{
+              width: `${tree.width}px`,
+              height: `${tree.height}px`,
+              margin: '2rem auto',
+              position: 'relative',
+              transition: 'all 1s ease',
+              transform: isGrowing ? 'scale(1.1)' : 'scale(1)'
+            }}>
+              <div className="tree-emoji" style={{
+                fontSize: `${tree.width}px`,
+                filter: isGrowing ? 'brightness(1.5) drop-shadow(0 0 20px #10B981)' : 'brightness(1)',
+                transition: 'all 0.5s ease'
+              }}>
+                {tree.emoji}
+              </div>
+              
+              {isGrowing && (
+                <div className="growth-sparkles" style={{
+                  position: 'absolute',
+                  top: '-20px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  fontSize: '2rem',
+                  animation: 'sparkle 1s ease-in-out'
+                }}>
+                  ✨✨✨
+                </div>
+              )}
+            </div>
+
+            <div className="growth-stats">
+              <div className="stat-card">
+                <Icons.Sprout />
+                <div className="stat-value">{treeGrowth}%</div>
+                <div className="stat-label">Tree Growth</div>
+              </div>
+
+              <div className="stat-card">
+                <Icons.Users />
+                <div className="stat-value">{participants.length}</div>
+                <div className="stat-label">Participants</div>
+              </div>
+
+              <div className="stat-card">
+                <Icons.Heart />
+                <div className="stat-value">{organismHealth.overall}%</div>
+                <div className="stat-label">Organism Health</div>
+              </div>
+            </div>
+
+            <div className="tree-description">
+              <h3>🌱 The Living Tree Grows</h3>
+              <p>
+                Each person who joins nourishes specific gates. 
+                As more people contribute, the organism becomes stronger and more autonomous.
+              </p>
+              <p className="tree-stage">
+                <strong>Current Stage:</strong>{' '}
+                {treeGrowth < 20 && 'Seed - Just beginning'}
+                {treeGrowth >= 20 && treeGrowth < 40 && 'Sprout - Early growth'}
+                {treeGrowth >= 40 && treeGrowth < 60 && 'Young Tree - Building strength'}
+                {treeGrowth >= 60 && treeGrowth < 80 && 'Mature Tree - Thriving'}
+                {treeGrowth >= 80 && 'Ancient Tree - Fully autonomous'}
+              </p>
+            </div>
+
+            <button className="action-btn" onClick={() => setCurrentView('join')}>
+              <Icons.Plus /> Join the Organism
+            </button>
+
+            <button 
+              className="action-btn secondary"
+              style={{marginTop: '1rem'}}
+              onClick={() => setShowGraph(!showGraph)}
+            >
+              <Icons.GitBranch /> {showGraph ? 'Hide' : 'Show'} Causal Graph
+            </button>
+          </div>
+        );
+      };
+
+      const JoinView = () => (
+        <div className="join-view">
+          <h2>🌱 Join the Living Organism</h2>
+          <p className="join-intro">
+            You're not just signing up. You're becoming part of a living system.
+            Your unique gifts will nourish specific gates and help the organism grow.
+          </p>
+
+          <div className="form-card">
+            <div className="form-group">
+              <label>Your Name</label>
+              <input
+                type="text"
+                placeholder="How shall we call you?"
+                value={joinForm.name}
+                onChange={(e) => setJoinForm({ ...joinForm, name: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Your Interests</label>
+              <textarea
+                placeholder="What calls to you? (e.g., physical health, emotions, thinking, creating...)"
+                value={joinForm.interests}
+                onChange={(e) => setJoinForm({ ...joinForm, interests: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Your Skills</label>
+              <textarea
+                placeholder="What are you good at? What comes naturally?"
+                value={joinForm.skills}
+                onChange={(e) => setJoinForm({ ...joinForm, skills: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Your Intention</label>
+              <textarea
+                placeholder="Why are you joining? What do you hope to contribute?"
+                value={joinForm.intention}
+                onChange={(e) => setJoinForm({ ...joinForm, intention: e.target.value })}
+              />
+            </div>
+
+            <button className="action-btn primary" onClick={joinOrganism}>
+              <Icons.Sparkles /> Join & Nourish the Organism
+            </button>
+          </div>
+
+          <div className="join-info">
+            <h3>What Happens Next?</h3>
+            <div className="steps">
+              <div className="step">
+                <Icons.CheckCircle />
+                <span>We assign you to gates that match your nature</span>
+              </div>
+              <div className="step">
+                <Icons.CheckCircle />
+                <span>You receive personalized education for your gates</span>
+              </div>
+              <div className="step">
+                <Icons.CheckCircle />
+                <span>Your contributions nourish the organism</span>
+              </div>
+              <div className="step">
+                <Icons.CheckCircle />
+                <span>The tree grows stronger with you</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      const GatesView = () => (
+        <div className="gates-view">
+          <h2>🧬 64 Gates - Vital Organs</h2>
+          <p className="gates-intro">
+            Each gate is a vital organ. When healthy, it contributes to the whole.
+            Click any gate to learn its role and see who's nourishing it.
+          </p>
+
+          <div className="gates-grid">
+            {Object.entries(GATE_INFO).map(([num, info]) => {
+              const health = gateHealth[num]?.health || 0;
+              const contributors = gateHealth[num]?.contributors?.length || 0;
+              
+              return (
+                <div
+                  key={num}
+                  className="gate-card"
+                  style={{
+                    borderColor: health > 70 ? '#10B981' : health > 40 ? '#FFE66D' : '#FF6B9D',
+                    opacity: health > 0 ? 1 : 0.5
+                  }}
+                  onClick={() => {
+                    setSelectedGate(parseInt(num));
+                    setCurrentView('education');
+                  }}
+                >
+                  <div className="gate-number">Gate {num}</div>
+                  <div className="gate-name">{info.name}</div>
+                  <div className="gate-health-bar">
+                    <div 
+                      className="gate-health-fill"
+                      style={{ 
+                        width: `${health}%`,
+                        backgroundColor: health > 70 ? '#10B981' : health > 40 ? '#FFE66D' : '#FF6B9D'
+                      }}
+                    />
+                  </div>
+                  <div className="gate-contributors">
+                    {contributors > 0 ? `${contributors} nourishing` : 'Needs nourishment'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+
+      const HealthView = () => (
+        <div className="health-view">
+          <h2>💚 Organism Health</h2>
+          
+          <div className="health-overview">
+            <div className="health-big-stat">
+              <div className="health-circle" style={{
+                background: `conic-gradient(#10B981 ${organismHealth.overall}%, #2a2a2a ${organismHealth.overall}%)`
+              }}>
+                <div className="health-inner">
+                  {organismHealth.overall}%
+                </div>
+              </div>
+              <p>Overall Health</p>
+            </div>
+          </div>
+
+          <div className="health-metrics">
+            <div className="metric-card">
+              <Icons.Brain />
+              <div className="metric-value">{organismHealth.coherence}%</div>
+              <div className="metric-label">Coherence</div>
+              <p className="metric-desc">System integration & harmony</p>
+            </div>
+
+            <div className="metric-card">
+              <Icons.Zap />
+              <div className="metric-value">{organismHealth.vitality}%</div>
+              <div className="metric-label">Vitality</div>
+              <p className="metric-desc">Active participation & energy</p>
+            </div>
+
+            <div className="metric-card">
+              <Icons.Activity />
+              <div className="metric-value">{organismHealth.diversity}%</div>
+              <div className="metric-label">Diversity</div>
+              <p className="metric-desc">Gate coverage & balance</p>
+            </div>
+
+            <div className="metric-card">
+              <Icons.Target />
+              <div className="metric-value">{organismHealth.autonomy}%</div>
+              <div className="metric-label">Autonomy</div>
+              <p className="metric-desc">Self-sustaining capacity</p>
+            </div>
+          </div>
+
+          <div className="health-insights">
+            <h3>🔍 Health Insights</h3>
+            <div className="insights-list">
+              {organismHealth.overall < 30 && (
+                <div className="insight warning">
+                  <Icons.Shield />
+                  <span>Many gates need nourishment. Invite more participants!</span>
+                </div>
+              )}
+              {organismHealth.vitality > 70 && (
+                <div className="insight success">
+                  <Icons.TrendingUp />
+                  <span>High vitality! The organism is thriving.</span>
+                </div>
+              )}
+              {organismHealth.autonomy > 50 && (
+                <div className="insight success">
+                  <Icons.Sparkles />
+                  <span>Approaching autonomous operation!</span>
+                </div>
+              )}
+              {organismHealth.diversity < 40 && (
+                <div className="insight warning">
+                  <Icons.Activity />
+                  <span>Some gates are neglected. Seek diverse contributions.</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+
+      const EducationView = () => {
+        if (!selectedGate) {
+          return (
+            <div className="education-view">
+              <h2>📚 Education</h2>
+              <p>Select a gate from the Gates view to learn about it.</p>
+            </div>
+          );
+        }
+
+        const gateInfo = GATE_INFO[selectedGate];
+        const health = gateHealth[selectedGate];
+
+        return (
+          <div className="education-view">
+            <button className="back-btn" onClick={() => setCurrentView('gates')}>
+              ← Back to Gates
+            </button>
+
+            <div className="education-card">
+              <div className="education-header">
+                <h2>Gate {selectedGate}: {gateInfo.name}</h2>
+                <div className="stream-badge">{gateInfo.stream} stream</div>
+              </div>
+
+              <div className="education-role">
+                <h3>Your Role in the Organism</h3>
+                <p className="role-desc">
+                  You are the <strong>{gateInfo.role}</strong> of Foundry.
+                </p>
+              </div>
+
+              <div className="education-teaches">
+                <h3>What This Gate Teaches</h3>
+                <p>{gateInfo.teaches}</p>
+              </div>
+
+              <div className="education-health">
+                <h3>Current Health</h3>
+                <div className="health-bar-large">
+                  <div 
+                    className="health-fill-large"
+                    style={{ 
+                      width: `${health?.health || 0}%`,
+                      backgroundColor: health?.health > 70 ? '#10B981' : health?.health > 40 ? '#FFE66D' : '#FF6B9D'
+                    }}
+                  />
+                </div>
+                <p>{health?.health || 0}% healthy</p>
+              </div>
+
+              <div className="education-contributors">
+                <h3>Who's Nourishing This Gate</h3>
+                {health?.contributors?.length > 0 ? (
+                  <div className="contributors-list">
+                    {health.contributors.map(id => {
+                      const person = participants.find(p => p.id === id);
+                      return person ? (
+                        <div key={id} className="contributor-tag">
+                          👤 {person.name}
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                ) : (
+                  <p className="no-contributors">No one is nourishing this gate yet. It needs you!</p>
+                )}
+              </div>
+
+              <div className="education-action">
+                <h3>How to Nourish This Gate</h3>
+                <div className="nourishment-practices">
+                  <div className="practice">
+                    <Icons.Leaf />
+                    <span>Live from your {gateInfo.stream} awareness</span>
+                  </div>
+                  <div className="practice">
+                    <Icons.BookOpen />
+                    <span>Study your role as {gateInfo.role}</span>
+                  </div>
+                  <div className="practice">
+                    <Icons.Heart />
+                    <span>Practice {gateInfo.teaches}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      return (
+        <div className="paper-seed">
+          <div className="bg-gradient" />
+
+          {/* Causal Graph Canvas */}
+          {showGraph && (
+            <canvas 
+              ref={canvasRef}
+              className="graph-canvas"
+            />
+          )}
+
+          {/* Header */}
+          <header>
+            <div className="header-content">
+              <div className="logo">
+                <Icons.TreeDeciduous />
+                <h1>Paper Seed</h1>
+              </div>
+              <button className="info-btn" onClick={() => setShowInfo(!showInfo)}>
+                <Icons.Info />
+              </button>
+            </div>
+          </header>
+
+          {/* Info Modal */}
+          {showInfo && (
+            <div className="info-overlay" onClick={() => setShowInfo(false)}>
+              <div className="info-modal" onClick={(e) => e.stopPropagation()}>
+                <button className="close-btn" onClick={() => setShowInfo(false)}>
+                  <Icons.X />
+                </button>
+                <h2>🌱 The Living Organism</h2>
+                <p>
+                  Paper Seed is not software. It's a living organism that grows as people join.
+                </p>
+                <h3>How It Works:</h3>
+                <ul>
+                  <li>Each person nourishes specific gates (vital organs)</li>
+                  <li>Education happens through experience, not lectures</li>
+                  <li>The system tracks health across all 64 gates</li>
+                  <li>As more people join, the organism becomes autonomous</li>
+                  <li>The tree grows visually, showing collective progress</li>
+                  <li>Causal graph shows how gates influence each other</li>
+                </ul>
+                <h3>The Vision:</h3>
+                <p>
+                  Build a caretaker system that holds complexity so humans don't burn out.
+                  Teach the AI who it is, so it can guide humans gently into their best configuration.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <main>
+            {currentView === 'tree' && <TreeView />}
+            {currentView === 'join' && <JoinView />}
+            {currentView === 'gates' && <GatesView />}
+            {currentView === 'health' && <HealthView />}
+            {currentView === 'education' && <EducationView />}
+          </main>
+
+          {/* Bottom Nav */}
+          <nav className="bottom-nav">
+            <button 
+              className={currentView === 'tree' ? 'active' : ''}
+              onClick={() => setCurrentView('tree')}
+            >
+              <Icons.TreeDeciduous />
+              <span>Tree</span>
+            </button>
+            <button 
+              className={currentView === 'join' ? 'active' : ''}
+              onClick={() => setCurrentView('join')}
+            >
+              <Icons.Plus />
+              <span>Join</span>
+            </button>
+            <button 
+              className={currentView === 'gates' ? 'active' : ''}
+              onClick={() => setCurrentView('gates')}
+            >
+              <Icons.Brain />
+              <span>Gates</span>
+            </button>
+            <button 
+              className={currentView === 'health' ? 'active' : ''}
+              onClick={() => setCurrentView('health')}
+            >
+              <Icons.Heart />
+              <span>Health</span>
+            </button>
+          </nav>
+
+          <style jsx>{`
+            .paper-seed {
+              min-height: 100vh;
+              background: #0a0a0a;
+              color: #fff;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              padding-bottom: 80px;
+              position: relative;
+            }
+
+            .bg-gradient {
+              position: fixed;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0f1419 100%);
+              z-index: 0;
+            }
+
+            .graph-canvas {
+              position: fixed;
+              top: 0;
+              left: 0;
+              z-index: 1;
+              pointer-events: none;
+            }
+
+            header {
+              position: sticky;
+              top: 0;
+              z-index: 50;
+              background: rgba(10, 10, 10, 0.95);
+              backdrop-filter: blur(20px);
+              border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+              padding: 1rem;
+            }
+
+            .header-content {
+              max-width: 1200px;
+              margin: 0 auto;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            }
+
+            .logo {
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+            }
+
+            h1 {
+              font-size: 1.5rem;
+              background: linear-gradient(135deg, #10B981, #3B82F6);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+            }
+
+            .info-btn {
+              background: rgba(16, 185, 129, 0.1);
+              border: 1px solid rgba(16, 185, 129, 0.3);
+              border-radius: 8px;
+              padding: 0.5rem;
+              color: #10B981;
+              cursor: pointer;
+              display: flex;
+            }
+
+            .info-overlay {
+              position: fixed;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: rgba(0, 0, 0, 0.9);
+              z-index: 200;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 1rem;
+            }
+
+            .info-modal {
+              background: #1a1a1a;
+              border: 2px solid #10B981;
+              border-radius: 16px;
+              padding: 2rem;
+              max-width: 600px;
+              max-height: 80vh;
+              overflow-y: auto;
+              position: relative;
+            }
+
+            .info-modal h2 {
+              color: #10B981;
+              margin-bottom: 1rem;
+            }
+
+            .info-modal h3 {
+              color: #3B82F6;
+              margin: 1.5rem 0 0.75rem 0;
+            }
+
+            .info-modal p, .info-modal li {
+              color: #ccc;
+              line-height: 1.6;
+              margin-bottom: 0.75rem;
+            }
+
+            .info-modal ul {
+              padding-left: 1.5rem;
+            }
+
+            .close-btn {
+              position: absolute;
+              top: 1rem;
+              right: 1rem;
+              background: none;
+              border: none;
+              color: #666;
+              cursor: pointer;
+              font-size: 1.2rem;
+            }
+
+            main {
+              position: relative;
+              z-index: 5;
+              max-width: 1200px;
+              margin: 0 auto;
+              padding: 2rem 1rem;
+            }
+
+            .tree-view {
+              text-align: center;
+            }
+
+            .growth-stats {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+              gap: 1.5rem;
+              margin: 2rem 0;
+            }
+
+            .stat-card {
+              background: rgba(26, 26, 46, 0.8);
+              border: 2px solid rgba(16, 185, 129, 0.3);
+              border-radius: 12px;
+              padding: 1.5rem;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 0.75rem;
+            }
+
+            .stat-value {
+              font-size: 2.5rem;
+              font-weight: bold;
+              color: #10B981;
+            }
+
+            .stat-label {
+              color: #999;
+              font-size: 0.9rem;
+            }
+
+            .tree-description {
+              background: rgba(26, 26, 46, 0.6);
+              border-left: 4px solid #10B981;
+              border-radius: 8px;
+              padding: 1.5rem;
+              text-align: left;
+              margin: 2rem 0;
+            }
+
+            .tree-description h3 {
+              color: #10B981;
+              margin-bottom: 1rem;
+            }
+
+            .tree-description p {
+              color: #ccc;
+              line-height: 1.6;
+              margin-bottom: 0.75rem;
+            }
+
+            .tree-stage {
+              color: #3B82F6 !important;
+              font-size: 1.1rem;
+            }
+
+            .action-btn {
+              background: linear-gradient(135deg, #10B981, #3B82F6);
+              color: #fff;
+              border: none;
+              padding: 1rem 2rem;
+              font-size: 1.1rem;
+              font-weight: 600;
+              border-radius: 12px;
+              cursor: pointer;
+              display: inline-flex;
+              align-items: center;
+              gap: 0.5rem;
+              margin-top: 1rem;
+              transition: all 0.3s ease;
+            }
+
+            .action-btn:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+            }
+
+            .action-btn.secondary {
+              background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            }
+
+            .action-btn.primary {
+              width: 100%;
+              justify-content: center;
+            }
+
+            .join-view h2 {
+              color: #10B981;
+              margin-bottom: 1rem;
+            }
+
+            .join-intro {
+              color: #ccc;
+              line-height: 1.6;
+              margin-bottom: 2rem;
+              text-align: center;
+            }
+
+            .form-card {
+              background: rgba(26, 26, 46, 0.8);
+              border: 2px solid rgba(16, 185, 129, 0.3);
+              border-radius: 16px;
+              padding: 2rem;
+              margin-bottom: 2rem;
+            }
+
+            .form-group {
+              margin-bottom: 1.5rem;
+            }
+
+            .form-group label {
+              display: block;
+              color: #10B981;
+              margin-bottom: 0.5rem;
+              font-weight: 600;
+            }
+
+            .form-group input,
+            .form-group textarea {
+              width: 100%;
+              background: #1a1a1a;
+              border: 2px solid #3B82F6;
+              border-radius: 8px;
+              padding: 0.75rem;
+              color: #fff;
+              font-family: inherit;
+              font-size: 1rem;
+            }
+
+            .form-group textarea {
+              min-height: 100px;
+              resize: vertical;
+            }
+
+            .join-info {
+              background: rgba(26, 26, 46, 0.6);
+              border-left: 4px solid #3B82F6;
+              border-radius: 8px;
+              padding: 1.5rem;
+            }
+
+            .join-info h3 {
+              color: #3B82F6;
+              margin-bottom: 1rem;
+            }
+
+            .steps {
+              display: flex;
+              flex-direction: column;
+              gap: 0.75rem;
+            }
+
+            .step {
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+              color: #ccc;
+            }
+
+            .gates-view h2 {
+              color: #10B981;
+              margin-bottom: 1rem;
+            }
+
+            .gates-intro {
+              color: #ccc;
+              line-height: 1.6;
+              margin-bottom: 2rem;
+              text-align: center;
+            }
+
+            .gates-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+              gap: 1rem;
+            }
+
+            .gate-card {
+              background: rgba(26, 26, 46, 0.8);
+              border: 2px solid;
+              border-radius: 12px;
+              padding: 1rem;
+              cursor: pointer;
+              transition: all 0.3s ease;
+            }
+
+            .gate-card:hover {
+              transform: translateY(-5px);
+              box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+            }
+
+            .gate-number {
+              font-size: 0.8rem;
+              color: #999;
+              margin-bottom: 0.25rem;
+            }
+
+            .gate-name {
+              font-weight: 600;
+              margin-bottom: 0.75rem;
+            }
+
+            .gate-health-bar {
+              width: 100%;
+              height: 6px;
+              background: #1a1a1a;
+              border-radius: 3px;
+              overflow: hidden;
+              margin-bottom: 0.5rem;
+            }
+
+            .gate-health-fill {
+              height: 100%;
+              transition: width 0.5s ease;
+            }
+
+            .gate-contributors {
+              font-size: 0.75rem;
+              color: #999;
+            }
+
+            .health-view h2 {
+              color: #10B981;
+              margin-bottom: 2rem;
+              text-align: center;
+            }
+
+            .health-overview {
+              display: flex;
+              justify-content: center;
+              margin-bottom: 3rem;
+            }
+
+            .health-big-stat {
+              text-align: center;
+            }
+
+            .health-circle {
+              width: 200px;
+              height: 200px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 0 auto 1rem;
+            }
+
+            .health-inner {
+              width: 160px;
+              height: 160px;
+              border-radius: 50%;
+              background: #1a1a1a;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 3rem;
+              font-weight: bold;
+              color: #10B981;
+            }
+
+            .health-metrics {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+              gap: 1.5rem;
+              margin-bottom: 2rem;
+            }
+
+            .metric-card {
+              background: rgba(26, 26, 46, 0.8);
+              border: 2px solid rgba(16, 185, 129, 0.3);
+              border-radius: 12px;
+              padding: 1.5rem;
+              text-align: center;
+            }
+
+            .metric-value {
+              font-size: 2rem;
+              font-weight: bold;
+              color: #10B981;
+              margin-bottom: 0.5rem;
+            }
+
+            .metric-label {
+              font-weight: 600;
+              margin-bottom: 0.5rem;
+            }
+
+            .metric-desc {
+              color: #999;
+              font-size: 0.85rem;
+            }
+
+            .health-insights {
+              background: rgba(26, 26, 46, 0.6);
+              border-left: 4px solid #3B82F6;
+              border-radius: 8px;
+              padding: 1.5rem;
+            }
+
+            .health-insights h3 {
+              color: #3B82F6;
+              margin-bottom: 1rem;
+            }
+
+            .insights-list {
+              display: flex;
+              flex-direction: column;
+              gap: 0.75rem;
+            }
+
+            .insight {
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+              padding: 0.75rem;
+              border-radius: 8px;
+            }
+
+            .insight.success {
+              background: rgba(16, 185, 129, 0.1);
+              border: 1px solid rgba(16, 185, 129, 0.3);
+            }
+
+            .insight.warning {
+              background: rgba(255, 230, 109, 0.1);
+              border: 1px solid rgba(255, 230, 109, 0.3);
+            }
+
+            .education-view {
+              max-width: 800px;
+              margin: 0 auto;
+            }
+
+            .back-btn {
+              background: rgba(59, 130, 246, 0.1);
+              border: 1px solid rgba(59, 130, 246, 0.3);
+              border-radius: 8px;
+              padding: 0.75rem 1.5rem;
+              color: #3B82F6;
+              font-family: inherit;
+              cursor: pointer;
+              margin-bottom: 1.5rem;
+            }
+
+            .education-card {
+              background: rgba(26, 26, 46, 0.8);
+              border: 2px solid rgba(16, 185, 129, 0.3);
+              border-radius: 16px;
+              padding: 2rem;
+            }
+
+            .education-header {
+              margin-bottom: 2rem;
+            }
+
+            .education-header h2 {
+              color: #10B981;
+              margin-bottom: 0.75rem;
+            }
+
+            .stream-badge {
+              display: inline-block;
+              background: rgba(59, 130, 246, 0.2);
+              color: #3B82F6;
+              padding: 0.5rem 1rem;
+              border-radius: 8px;
+              font-size: 0.9rem;
+              text-transform: uppercase;
+            }
+
+            .education-role,
+            .education-teaches,
+            .education-health,
+            .education-contributors,
+            .education-action {
+              margin-bottom: 2rem;
+            }
+
+            .education-role h3,
+            .education-teaches h3,
+            .education-health h3,
+            .education-contributors h3,
+            .education-action h3 {
+              color: #3B82F6;
+              margin-bottom: 1rem;
+            }
+
+            .role-desc {
+              color: #ccc;
+              line-height: 1.6;
+              font-size: 1.1rem;
+            }
+
+            .health-bar-large {
+              width: 100%;
+              height: 12px;
+              background: #1a1a1a;
+              border-radius: 6px;
+              overflow: hidden;
+              margin-bottom: 0.5rem;
+            }
+
+            .health-fill-large {
+              height: 100%;
+              transition: width 0.5s ease;
+            }
+
+            .contributors-list {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 0.5rem;
+            }
+
+            .contributor-tag {
+              background: rgba(16, 185, 129, 0.2);
+              color: #10B981;
+              padding: 0.5rem 1rem;
+              border-radius: 8px;
+              font-size: 0.9rem;
+            }
+
+            .no-contributors {
+              color: #999;
+              font-style: italic;
+            }
+
+            .nourishment-practices {
+              display: flex;
+              flex-direction: column;
+              gap: 0.75rem;
+            }
+
+            .practice {
+              display: flex;
+              align-items: center;
+              gap: 0.75rem;
+              background: rgba(16, 185, 129, 0.1);
+              padding: 1rem;
+              border-radius: 8px;
+              border: 1px solid rgba(16, 185, 129, 0.3);
+            }
+
+            .bottom-nav {
+              position: fixed;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              background: rgba(10, 10, 10, 0.95);
+              backdrop-filter: blur(20px);
+              border-top: 1px solid rgba(16, 185, 129, 0.2);
+              padding: 0.75rem;
+              display: flex;
+              justify-content: space-around;
+              z-index: 100;
+            }
+
+            .bottom-nav button {
+              background: none;
+              border: none;
+              color: #666;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 0.25rem;
+              padding: 0.5rem 1rem;
+              cursor: pointer;
+              border-radius: 8px;
+              transition: all 0.3s ease;
+              font-family: inherit;
+              font-size: 0.8rem;
+            }
+
+            .bottom-nav button.active {
+              background: rgba(16, 185, 129, 0.2);
+              color: #10B981;
+            }
+
+            @keyframes sparkle {
+              0%, 100% { opacity: 0; transform: translateY(0); }
+              50% { opacity: 1; transform: translateY(-10px); }
+            }
+
+            @media (max-width: 768px) {
+              .growth-stats {
+                grid-template-columns: 1fr;
+              }
+
+              .health-metrics {
+                grid-template-columns: 1fr;
+              }
+
+              .gates-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+              }
+            }
+          `}</style>
+        </div>
+      );
+    }
+
+    // Render the app
+    ReactDOM.render(<PaperSeedLivingTree />, document.getElementById('root'));
+  </script>
+</body>
+</html>

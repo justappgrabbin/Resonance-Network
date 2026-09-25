@@ -1,0 +1,3 @@
+Canonical source archive: Resonance-North-Star-Production.zip
+SHA-256: d1e0f54eed139b68e3b11100ea2045a2a88623e98b2f995e36cc6a849f2d3ea8
+Imported by one-shot GitHub Action on 2026-09-25.
