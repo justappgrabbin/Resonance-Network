@@ -1,0 +1,50 @@
+name: Ingest Resonance North Star Production
+
+on:
+  push:
+    branches:
+      - north-star-production-complete-2026-09-25
+    paths:
+      - .github/workflows/ingest-north-star-production.yml
+
+permissions:
+  contents: write
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: north-star-production-complete-2026-09-25
+
+      - name: Download canonical production archive
+        env:
+          SOURCE_URL: "https://sdmntprwestus.oaiusercontent.com/files/00000000-5054-8230-a948-2115ae7746db/raw?se=2026-09-25T23%3A38%3A52Z&sp=r&sv=2026-02-06&sr=b&scid=4978904f-7ed1-5b75-a60d-107c396fe78b&skoid=1a0ef048-201c-43e0-8950-52d58956a71a&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-25T19%3A42%3A41Z&ske=2026-09-26T19%3A42%3A41Z&sks=b&skv=2026-02-06&sig=a/1tgYMumFCyH4dfdZd5JlCRbDNVASzDRJeZyYmPXec%3D"
+          EXPECTED_SHA256: "d1e0f54eed139b68e3b11100ea2045a2a88623e98b2f995e36cc6a849f2d3ea8"
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 "$SOURCE_URL" --output /tmp/Resonance-North-Star-Production.zip
+          echo "$EXPECTED_SHA256  /tmp/Resonance-North-Star-Production.zip" | sha256sum --check -
+
+      - name: Expand archive without altering existing repository history
+        run: |
+          set -euo pipefail
+          rm -rf north-star-production
+          mkdir -p north-star-production
+          unzip -q /tmp/Resonance-North-Star-Production.zip -d north-star-production
+          printf '%s\n'             'Canonical source archive: Resonance-North-Star-Production.zip'             'SHA-256: d1e0f54eed139b68e3b11100ea2045a2a88623e98b2f995e36cc6a849f2d3ea8'             'Imported by one-shot GitHub Action on 2026-09-25.'             > north-star-production/IMPORT_PROVENANCE.txt
+
+      - name: Commit complete North Star tree
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add north-star-production
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Import complete Resonance North Star production archive"
+          git push origin HEAD:north-star-production-complete-2026-09-25
