@@ -6,6 +6,14 @@ import { northStarApi } from "@/northstar/api";
 import { cloneStarterWorkspace, type NorthStarWorkspaceState, type BuilderRun } from "@/northstar/workspace";
 import type { EnterpriseOffer, Experiment, Mission, NetworkNode, Pathway } from "@/northstar/types";
 import {
+  activeCultivation,
+  createCultivationState,
+  cultivationNextVector,
+  observeCultivation,
+  setCultivationQuality,
+  startCultivation,
+} from "@/northstar/selfCultivation";
+import {
   Activity,
   ArrowRight,
   Beaker,
@@ -404,9 +412,224 @@ function WorldsView({ workspace, update }: any) {
 }
 
 function SynthiaView({ workspace, update, addActivity }: any) {
-  const [question, setQuestion] = useState(""); const [reply, setReply] = useState(""); const [thinking, setThinking] = useState(false);
-  const ask = async () => { if (!question.trim()) return; const q = question.trim(); setQuestion(""); setThinking(true); try { const response = await fetch("/api/consciousness/query", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q }) }); const data = await response.json(); const text = data.answer || data.response || data.message || data.result || "The local consciousness service returned without a text response."; setReply(typeof text === "string" ? text : JSON.stringify(text, null, 2)); update((d: NorthStarWorkspaceState) => { d.synthia.currentFocus = q; addActivity(d, "synthia", "Synthia focus updated", q); }); } catch { setReply("The local Synthia service is offline. Your North Star workspace is still available and continues saving independently."); } finally { setThinking(false); } };
-  return <><SectionTitle eyebrow="Personal companion" title="Synthia travels with the work" copy="The companion is not a detached chatbot. She can hold the user's current vector, explain network context, move between mission, lab, builder, and world modes, and keep the next action attached to the larger purpose." />
-    <div className="grid xl:grid-cols-[1fr_380px] gap-5"><div className="ns-card p-6"><div className="flex items-center gap-3 mb-5"><div className="w-12 h-12 rounded-2xl bg-primary/12 border border-primary/20 flex items-center justify-center"><Bot className="w-6 h-6 text-primary" /></div><div><div className="font-display text-2xl font-bold">{workspace.synthia.name}</div><div className="text-sm text-primary">{workspace.synthia.mode} mode</div></div></div><div className="rounded-2xl bg-white/[0.025] border border-white/7 p-4 min-h-40"><div className="text-xs uppercase tracking-wider text-muted-foreground">Current focus</div><p className="mt-2 leading-relaxed">{workspace.synthia.currentFocus}</p>{reply && <div className="mt-5 pt-5 border-t border-white/7 whitespace-pre-wrap text-sm text-muted-foreground">{reply}</div>}</div><div className="flex gap-2 mt-4"><input className="ns-input flex-1" value={question} onChange={(e) => setQuestion(e.target.value)} onKeyDown={(e) => e.key === "Enter" && ask()} placeholder="Ask Synthia about the work..." /><button onClick={ask} disabled={thinking} className="ns-primary">{thinking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}</button></div></div><div className="space-y-4"><div className="ns-card p-5"><div className="text-xs uppercase tracking-wider text-muted-foreground">Modes</div><div className="grid grid-cols-2 gap-2 mt-3">{(["companion","mission","lab","builder","world"] as const).map(mode => <button key={mode} onClick={() => update((d: NorthStarWorkspaceState) => { d.synthia.mode = mode; })} className={`px-3 py-2 rounded-xl border text-sm ${workspace.synthia.mode === mode ? "border-primary/30 bg-primary/10 text-primary" : "border-white/7 bg-white/[0.02] text-muted-foreground"}`}>{mode}</button>)}</div></div><div className="ns-card p-5"><div className="text-xs uppercase tracking-wider text-muted-foreground">Next actions</div><div className="space-y-3 mt-3">{workspace.synthia.nextActions.map((a: string) => <div key={a} className="flex gap-2 text-sm"><ChevronRight className="w-4 h-4 text-primary mt-0.5" />{a}</div>)}</div></div></div></div>
+  const [question, setQuestion] = useState("");
+  const [reply, setReply] = useState("");
+  const [thinking, setThinking] = useState(false);
+  const [goal, setGoal] = useState("");
+  const [context, setContext] = useState("");
+  const [quality, setQuality] = useState("");
+  const [outcome, setOutcome] = useState("");
+  const [evidence, setEvidence] = useState("");
+  const [friction, setFriction] = useState("");
+
+  const cultivation = workspace.cultivation ?? createCultivationState();
+  const active = activeCultivation(cultivation);
+
+  const ask = async () => {
+    if (!question.trim()) return;
+    const q = question.trim();
+    setQuestion("");
+    setThinking(true);
+    try {
+      const response = await fetch("/api/consciousness/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q }),
+      });
+      const data = await response.json();
+      const text = data.answer || data.response || data.message || data.result || "The local consciousness service returned without a text response.";
+      setReply(typeof text === "string" ? text : JSON.stringify(text, null, 2));
+      update((d: NorthStarWorkspaceState) => {
+        d.synthia.currentFocus = q;
+        addActivity(d, "synthia", "Synthia focus updated", q);
+      });
+    } catch {
+      setReply("The local Synthia service is offline. Your North Star workspace is still available and continues saving independently.");
+    } finally {
+      setThinking(false);
+    }
+  };
+
+  const beginCultivation = () => {
+    if (!goal.trim()) return;
+    update((d: NorthStarWorkspaceState) => {
+      const base = d.cultivation ?? createCultivationState();
+      d.cultivation = startCultivation(base, {
+        goal: goal.trim(),
+        context: context.trim(),
+        purpose: d.purpose.intention,
+      });
+      const cycle = activeCultivation(d.cultivation);
+      if (cycle) {
+        d.synthia.currentFocus = cycle.goal;
+        d.synthia.nextActions = [cycle.next || cultivationNextVector(d.cultivation), ...d.synthia.nextActions].slice(0, 5);
+        addActivity(d, "synthia", "Cultivation cycle started", cycle.goal);
+      }
+    });
+    setGoal("");
+    setContext("");
+  };
+
+  const saveQuality = () => {
+    if (!active || !quality.trim()) return;
+    update((d: NorthStarWorkspaceState) => {
+      d.cultivation = setCultivationQuality(d.cultivation ?? createCultivationState(), active.id, quality.trim());
+      addActivity(d, "synthia", "Cultivation quality named", quality.trim());
+    });
+    setQuality("");
+  };
+
+  const recordOutcome = (worked: boolean) => {
+    if (!active || !outcome.trim()) return;
+    update((d: NorthStarWorkspaceState) => {
+      d.cultivation = observeCultivation(d.cultivation ?? createCultivationState(), active.id, {
+        worked,
+        actualOutcome: outcome.trim(),
+        evidence: evidence.trim(),
+        friction: friction.trim(),
+      });
+      const next = activeCultivation(d.cultivation);
+      d.synthia.currentFocus = next?.goal || active.goal;
+      d.synthia.nextActions = [cultivationNextVector(d.cultivation), ...d.synthia.nextActions].slice(0, 5);
+      addActivity(
+        d,
+        "synthia",
+        worked ? "Cultivation evidence supported the move" : "Cultivation friction recorded",
+        outcome.trim(),
+      );
+    });
+    setOutcome("");
+    setEvidence("");
+    setFriction("");
+  };
+
+  return <>
+    <SectionTitle
+      eyebrow="Personal companion + self-cultivation"
+      title="Synthia travels with the work"
+      copy="Synthia carries a real cultivation loop: observe the situation, orient through the five-dimensional state-space, cultivate a quality, make a real move, record the consequence, and let evidence shape the next move."
+    />
+
+    <div className="grid xl:grid-cols-[1fr_380px] gap-5">
+      <div className="space-y-5">
+        <div className="ns-card p-6">
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-primary/12 border border-primary/20 flex items-center justify-center"><Compass className="w-6 h-6 text-primary" /></div>
+              <div>
+                <div className="font-display text-2xl font-bold">Self-Cultivation Engine</div>
+                <div className="text-sm text-primary">{active ? `${active.stage} • ${active.stageIndex + 1}/5` : "ready for a cycle"}</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-display font-bold">{cultivation.verifiedProgress}</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">verified moves</div>
+            </div>
+          </div>
+
+          {!active ? (
+            <div className="space-y-3">
+              <label className="ns-label">What do you want to become better at, change, or make true?</label>
+              <textarea className="ns-textarea min-h-24" value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="Name one real thing you want to cultivate..." />
+              <label className="ns-label">What is happening around it?</label>
+              <textarea className="ns-textarea min-h-20" value={context} onChange={(e) => setContext(e.target.value)} placeholder="Context, people, constraints, what has already happened..." />
+              <button onClick={beginCultivation} className="ns-primary"><Compass className="w-4 h-4" /> Start cultivation cycle</button>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-primary/15 bg-primary/[0.04] p-4">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-primary">Current goal</div>
+                <div className="font-display text-xl font-bold mt-2">{active.goal}</div>
+                <div className="text-sm text-muted-foreground mt-2">{active.next}</div>
+              </div>
+
+              <div>
+                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Five-dimensional state-space</div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-2">
+                  {Object.entries(active.projection).map(([questionName, field]: any) => (
+                    <div key={questionName} className="rounded-xl border border-white/7 bg-white/[0.02] p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-primary">{questionName} · {field.dimension}</div>
+                      <div className="text-xs mt-2 leading-relaxed">{field.value}</div>
+                      <div className="text-[10px] text-muted-foreground mt-2">{field.known ? "supplied context" : "open field"}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-white/7 p-4">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">Quality being cultivated</div>
+                <div className="font-semibold mt-2">{active.quality}</div>
+                <div className="flex gap-2 mt-3">
+                  <input className="ns-input flex-1" value={quality} onChange={(e) => setQuality(e.target.value)} placeholder="Name a more exact quality or capability..." />
+                  <button onClick={saveQuality} className="ns-secondary">Set quality</button>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-white/7 p-4 space-y-3">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground">Close the loop with reality</div>
+                <textarea className="ns-textarea min-h-20" value={outcome} onChange={(e) => setOutcome(e.target.value)} placeholder="What actually happened?" />
+                <input className="ns-input" value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Evidence or observation, optional" />
+                <input className="ns-input" value={friction} onChange={(e) => setFriction(e.target.value)} placeholder="Friction or obstacle, if there was one" />
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => recordOutcome(true)} className="ns-primary"><Check className="w-4 h-4" /> This moved me forward</button>
+                  <button onClick={() => recordOutcome(false)} className="ns-secondary">Adjust the route</button>
+                </div>
+              </div>
+
+              {active.observations.length > 0 && (
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Cycle evidence</div>
+                  <div className="space-y-2">
+                    {active.observations.slice().reverse().slice(0, 5).map((o: any, index: number) => (
+                      <div key={`${o.at}-${index}`} className="rounded-xl border border-white/7 p-3 text-sm">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-medium">{o.stage}</span>
+                          <Pill>{o.worked ? "supported" : "friction"}</Pill>
+                        </div>
+                        <div className="text-muted-foreground mt-2">{o.actualOutcome}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="ns-card p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-12 h-12 rounded-2xl bg-primary/12 border border-primary/20 flex items-center justify-center"><Bot className="w-6 h-6 text-primary" /></div>
+            <div><div className="font-display text-2xl font-bold">{workspace.synthia.name}</div><div className="text-sm text-primary">{workspace.synthia.mode} mode</div></div>
+          </div>
+          <div className="rounded-2xl bg-white/[0.025] border border-white/7 p-4 min-h-40">
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Current focus</div>
+            <p className="mt-2 leading-relaxed">{workspace.synthia.currentFocus}</p>
+            {reply && <div className="mt-5 pt-5 border-t border-white/7 whitespace-pre-wrap text-sm text-muted-foreground">{reply}</div>}
+          </div>
+          <div className="flex gap-2 mt-4">
+            <input className="ns-input flex-1" value={question} onChange={(e) => setQuestion(e.target.value)} onKeyDown={(e) => e.key === "Enter" && ask()} placeholder="Ask Synthia about the work..." />
+            <button onClick={ask} disabled={thinking} className="ns-primary">{thinking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="ns-card p-5">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Cultivation law</div>
+          <div className="space-y-3 mt-3 text-sm">
+            {["Awareness: observe what is actually happening.", "Orientation: resolve Who / What / Where / When / Why.", "Cultivation: develop a quality, not merely complete a task.", "Action: make the smallest real-world test.", "Integration: keep what worked and update the next cycle."].map((line) => <div key={line} className="flex gap-2"><ChevronRight className="w-4 h-4 text-primary mt-0.5 shrink-0" />{line}</div>)}
+          </div>
+        </div>
+        <div className="ns-card p-5">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Modes</div>
+          <div className="grid grid-cols-2 gap-2 mt-3">{(["companion","mission","lab","builder","world"] as const).map(mode => <button key={mode} onClick={() => update((d: NorthStarWorkspaceState) => { d.synthia.mode = mode; })} className={`px-3 py-2 rounded-xl border text-sm ${workspace.synthia.mode === mode ? "border-primary/30 bg-primary/10 text-primary" : "border-white/7 bg-white/[0.02] text-muted-foreground"}`}>{mode}</button>)}</div>
+        </div>
+        <div className="ns-card p-5">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Next actions</div>
+          <div className="space-y-3 mt-3">{[cultivationNextVector(cultivation), ...workspace.synthia.nextActions].slice(0, 5).map((a: string, index: number) => <div key={`${a}-${index}`} className="flex gap-2 text-sm"><ChevronRight className="w-4 h-4 text-primary mt-0.5" />{a}</div>)}</div>
+        </div>
+      </div>
+    </div>
   </>;
 }
+
