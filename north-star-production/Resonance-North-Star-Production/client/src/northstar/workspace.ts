@@ -14,6 +14,7 @@ import {
   starterOffers,
   starterPurpose,
 } from "./data";
+import { createCultivationState, type CultivationState } from "./selfCultivation";
 
 export interface ActivityItem {
   id: string;
@@ -69,6 +70,7 @@ export interface NorthStarWorkspaceState {
   builderRuns: BuilderRun[];
   worlds: WorldSpace[];
   synthia: SynthiaState;
+  cultivation: CultivationState;
   activity: ActivityItem[];
   settings: {
     locationOptIn: boolean;
@@ -122,6 +124,7 @@ export const starterWorkspace: NorthStarWorkspaceState = {
       "Capture evidence from the next field action",
     ],
   },
+  cultivation: createCultivationState(),
   activity: [
     {
       id: "activity-seed",
