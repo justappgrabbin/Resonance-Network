@@ -1,235 +1,190 @@
-/**
- * Consciousness Integration Layer
- * 
- * This is where you plug in your actual stellar proximology calculations.
- * Replace the placeholder methods with your real Python logic or JS ports.
- */
+import { astrology } from './AstroEngine.js';
+import { humanDesign, CHANNELS } from './HumanDesignEngine.js';
+
+const FIELD_SOURCES = [
+  { name: 'Mind', method: 'Tropical', planet: 'Sun', chart: 'tropical' },
+  { name: 'Heart', method: 'Draconic', planet: 'Sun', chart: 'draconic' },
+  { name: 'Body', method: 'Sidereal', planet: 'Sun', chart: 'sidereal' },
+  { name: 'Spirit', method: 'Tropical', planet: 'Moon', chart: 'tropical' },
+  { name: 'Shadow', method: 'Tropical', planet: 'Pluto', chart: 'tropical' },
+  { name: 'Light', method: 'Tropical', planet: 'Jupiter', chart: 'tropical' },
+  { name: 'Void', method: 'Draconic', planet: 'North Node', chart: 'draconic' },
+  { name: 'Form', method: 'Sidereal', planet: 'Saturn', chart: 'sidereal' },
+  { name: 'Flow', method: 'Tropical', planet: 'Neptune', chart: 'tropical' },
+];
+
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
 export class ConsciousnessEngine {
   constructor() {
-    this.fields = [
-      'Mind', 'Heart', 'Body', 'Spirit', 
-      'Shadow', 'Light', 'Void', 'Form', 'Flow'
-    ];
-    this.methods = ['Sidereal', 'Tropical', 'Draconic'];
+    this.fields = FIELD_SOURCES.map(f => f.name);
     this.cache = new Map();
   }
 
-  /**
-   * Calculate all 9 fields for a birth profile
-   * 
-   * @param {Object} birthData - { date, time, lat, lon }
-   * @returns {Object} - Field calculations for all 9 bodies
-   */
   async calculateProfile(birthData) {
-    const cacheKey = this.getCacheKey(birthData);
-    
-    if (this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey);
+    const normalized = {
+      ...birthData,
+      lat: Number(birthData?.lat || 0),
+      lon: Number(birthData?.lon || 0),
+      timezoneOffset: Number(birthData?.timezoneOffset || 0),
+    };
+    const cacheKey = this.getCacheKey(normalized);
+    if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
+
+    const astro = astrology.calculateTriad(normalized);
+    const hd = humanDesign.calculate(normalized, astro);
+    const fields = {};
+    for (const source of FIELD_SOURCES) {
+      fields[source.name] = this.calculateField(source, astro, hd);
     }
 
     const profile = {
-      birthData,
+      id: birthData?.id || null,
+      name: birthData?.name || 'Profile',
+      birthData: normalized,
       timestamp: Date.now(),
-      fields: {},
+      astrology: astro,
+      humanDesign: hd,
+      fields,
     };
-
-    // TODO: Replace with actual stellar proximology calculations
-    // This is where you port your Python logic or call your backend
-    for (let i = 0; i < this.fields.length; i++) {
-      const fieldName = this.fields[i];
-      const method = this.methods[i % 3];
-      
-      profile.fields[fieldName] = await this.calculateField(
-        birthData,
-        fieldName,
-        method
-      );
-    }
-
-    // Calculate field coherence
-    profile.coherence = this.calculateCoherence(profile.fields);
-    
-    // Calculate dominant field
-    profile.dominant = this.findDominantField(profile.fields);
-
+    profile.coherence = this.calculateCoherence(fields);
+    profile.dominant = this.findDominantField(fields);
     this.cache.set(cacheKey, profile);
     return profile;
   }
 
-  /**
-   * Calculate a single consciousness field
-   * 
-   * TODO: Implement your actual stellar proximology math here
-   */
-  async calculateField(birthData, fieldName, method) {
-    const { date, time, lat, lon } = birthData;
-    
-    // Placeholder - replace with real calculations
-    // This should calculate planetary positions using your chosen method
-    // and return gate/line/channel data
-    
+  calculateField(source, astro, hd) {
+    const chart = astro[source.chart];
+    const point = source.planet === 'North Node'
+      ? chart.northNode
+      : chart.positions.find(p => p.planet === source.planet);
+    const activation = humanDesign.longitudeToActivation(point.longitude);
+    const opposite = humanDesign.longitudeToActivation(point.longitude + 180);
+    const waveform = this.generateWaveform(hd, activation.gate, source.name);
+    const energy = this.waveEnergy(waveform);
     return {
-      field: fieldName,
-      method: method,
-      sun: {
-        gate: Math.floor(Math.random() * 64) + 1,
-        line: Math.floor(Math.random() * 6) + 1,
-      },
-      earth: {
-        gate: Math.floor(Math.random() * 64) + 1,
-        line: Math.floor(Math.random() * 6) + 1,
-      },
-      // Add other planetary positions as needed
-      waveform: this.generateWaveform(fieldName),
-      resonanceFreq: Math.random() * 100,
+      field: source.name,
+      method: source.method,
+      sourcePlanet: source.planet,
+      primary: activation,
+      sun: activation,
+      earth: opposite,
+      waveform,
+      resonanceFreq: 220 * (1 + (activation.gate - 1) / 64) * (1 + activation.line / 72),
+      energy,
     };
   }
 
-  /**
-   * Calculate resonance between two profiles
-   * 
-   * TODO: Implement your field interference calculations
-   */
+  generateWaveform(hd, focusGate, fieldName) {
+    const phase = this.fields.indexOf(fieldName) / this.fields.length * Math.PI * 2;
+    const gates = hd.activeGates || [];
+    return Array.from({ length: 64 }, (_, i) => {
+      const gate = i + 1;
+      let value = 0;
+      for (const active of gates) {
+        const distance = Math.min(Math.abs(active - gate), 64 - Math.abs(active - gate));
+        value += Math.cos((distance / 32) * Math.PI) * 0.08;
+      }
+      const focusDistance = Math.min(Math.abs(focusGate - gate), 64 - Math.abs(focusGate - gate));
+      value += Math.cos((focusDistance / 32) * Math.PI + phase) * 0.55;
+      return Math.max(-1, Math.min(1, value));
+    });
+  }
+
+  waveEnergy(waveform) {
+    const rms = Math.sqrt(waveform.reduce((s, v) => s + v*v, 0) / waveform.length);
+    return clamp01(rms);
+  }
+
   calculateResonance(profileA, profileB) {
-    let totalResonance = 0;
-    let resonantFields = [];
-
-    for (const fieldName of this.fields) {
-      const fieldA = profileA.fields[fieldName];
-      const fieldB = profileB.fields[fieldName];
-      
-      const fieldResonance = this.compareFields(fieldA, fieldB);
-      totalResonance += fieldResonance;
-      
-      if (fieldResonance > 0.7) {
-        resonantFields.push({
-          field: fieldName,
-          resonance: fieldResonance,
-          type: this.getResonanceType(fieldA, fieldB),
-        });
-      }
+    if (!profileA?.fields || !profileB?.fields) {
+      return { overall: 0, fields: [], compatibility: 'Insufficient data', electromagneticChannels: [], sharedGates: [] };
     }
+    const fieldResults = this.fields.map(fieldName => {
+      const score = this.compareFields(profileA.fields[fieldName], profileB.fields[fieldName]);
+      return {
+        field: fieldName,
+        resonance: score,
+        type: this.getResonanceType(profileA.fields[fieldName], profileB.fields[fieldName]),
+      };
+    });
+    const gatesA = new Set(profileA.humanDesign?.activeGates || []);
+    const gatesB = new Set(profileB.humanDesign?.activeGates || []);
+    const sharedGates = [...gatesA].filter(g => gatesB.has(g));
+    const electromagneticChannels = CHANNELS.filter(ch =>
+      (gatesA.has(ch.a) && gatesB.has(ch.b)) || (gatesA.has(ch.b) && gatesB.has(ch.a))
+    ).map(ch => `${ch.a}-${ch.b}`);
 
+    const base = fieldResults.reduce((s, f) => s + f.resonance, 0) / fieldResults.length;
+    const gateBonus = Math.min(0.12, sharedGates.length * 0.008 + electromagneticChannels.length * 0.018);
+    const overall = clamp01(base * 0.88 + gateBonus);
     return {
-      overall: totalResonance / this.fields.length,
-      fields: resonantFields,
-      compatibility: this.getCompatibilityType(totalResonance / this.fields.length),
+      overall,
+      fields: fieldResults.sort((a,b) => b.resonance - a.resonance),
+      compatibility: this.getCompatibilityType(overall),
+      electromagneticChannels,
+      sharedGates,
     };
   }
 
-  /**
-   * Compare two fields for resonance
-   * 
-   * TODO: Implement your actual field comparison logic
-   */
   compareFields(fieldA, fieldB) {
-    // Placeholder - implement wave interference calculations
-    // Check gate harmony, line compatibility, waveform phase alignment, etc.
-    
-    const gateMatch = fieldA.sun.gate === fieldB.sun.gate ? 1.0 : 0.3;
-    const lineMatch = fieldA.sun.line === fieldB.sun.line ? 0.5 : 0.1;
-    
-    // Add waveform interference calculation here
+    const sameGate = fieldA.primary.gate === fieldB.primary.gate ? 1 : 0;
+    const gateDistanceRaw = Math.abs(fieldA.primary.gate - fieldB.primary.gate);
+    const gateDistance = Math.min(gateDistanceRaw, 64 - gateDistanceRaw);
+    const gateCloseness = 1 - gateDistance / 32;
+    const lineCloseness = 1 - Math.abs(fieldA.primary.line - fieldB.primary.line) / 5;
     const waveMatch = this.compareWaveforms(fieldA.waveform, fieldB.waveform);
-    
-    return (gateMatch + lineMatch + waveMatch) / 3;
+    return clamp01(0.2*sameGate + 0.25*gateCloseness + 0.15*lineCloseness + 0.4*waveMatch);
   }
 
-  /**
-   * Generate waveform representation for a field
-   * 
-   * TODO: Replace with actual waveform calculations from stellar positions
-   */
-  generateWaveform(fieldName) {
-    // Placeholder - should calculate actual wave based on planetary positions
-    return Array.from({ length: 64 }, () => Math.sin(Math.random() * Math.PI * 2));
-  }
-
-  /**
-   * Compare two waveforms for resonance
-   */
-  compareWaveforms(waveA, waveB) {
-    if (!waveA || !waveB || waveA.length !== waveB.length) return 0;
-    
-    let similarity = 0;
-    for (let i = 0; i < waveA.length; i++) {
-      similarity += 1 - Math.abs(waveA[i] - waveB[i]) / 2;
+  compareWaveforms(a, b) {
+    if (!a || !b || a.length !== b.length) return 0;
+    let dot = 0, aa = 0, bb = 0;
+    for (let i = 0; i < a.length; i += 1) {
+      dot += a[i]*b[i]; aa += a[i]*a[i]; bb += b[i]*b[i];
     }
-    
-    return similarity / waveA.length;
+    if (!aa || !bb) return 0;
+    return clamp01((dot / Math.sqrt(aa*bb) + 1) / 2);
   }
 
-  /**
-   * Calculate overall field coherence
-   */
   calculateCoherence(fields) {
-    // Measure how aligned all 9 fields are
-    const frequencies = Object.values(fields).map(f => f.resonanceFreq);
-    const avg = frequencies.reduce((a, b) => a + b, 0) / frequencies.length;
-    const variance = frequencies.reduce((sum, f) => sum + Math.pow(f - avg, 2), 0) / frequencies.length;
-    
-    return 1 / (1 + variance); // Higher coherence = lower variance
+    const values = Object.values(fields).map(f => f.energy);
+    const avg = values.reduce((a,b) => a+b, 0) / values.length;
+    const variance = values.reduce((s,v) => s + (v-avg)*(v-avg), 0) / values.length;
+    return clamp01(1 - Math.sqrt(variance));
   }
 
-  /**
-   * Find the dominant field (strongest expression)
-   */
   findDominantField(fields) {
-    let maxField = null;
-    let maxStrength = 0;
-    
-    for (const [name, field] of Object.entries(fields)) {
-      const strength = field.resonanceFreq;
-      if (strength > maxStrength) {
-        maxStrength = strength;
-        maxField = name;
-      }
-    }
-    
-    return { field: maxField, strength: maxStrength };
+    return Object.values(fields).reduce((best, field) => !best || field.energy > best.energy ? field : best, null);
   }
 
-  getResonanceType(fieldA, fieldB) {
-    // Determine if it's harmonic, complementary, challenging, etc.
-    const gateDiff = Math.abs(fieldA.sun.gate - fieldB.sun.gate);
-    
-    if (gateDiff === 0) return 'Harmonic';
-    if (gateDiff === 32) return 'Complementary';
-    if (gateDiff < 10) return 'Resonant';
-    return 'Divergent';
+  getResonanceType(a, b) {
+    if (a.primary.gate === b.primary.gate) return 'Shared gate';
+    const diff = Math.min(Math.abs(a.primary.gate - b.primary.gate), 64 - Math.abs(a.primary.gate - b.primary.gate));
+    if (diff <= 4) return 'Near resonance';
+    if (diff >= 28) return 'Polar tension';
+    return 'Distinct pattern';
   }
 
-  getCompatibilityType(resonance) {
-    if (resonance > 0.9) return 'Soul Resonance';
-    if (resonance > 0.8) return 'Deep Harmony';
-    if (resonance > 0.7) return 'Strong Match';
-    if (resonance > 0.6) return 'Compatible';
-    if (resonance > 0.5) return 'Potential';
-    return 'Challenging';
+  getCompatibilityType(value) {
+    if (value >= 0.85) return 'High resonance';
+    if (value >= 0.7) return 'Strong resonance';
+    if (value >= 0.55) return 'Mixed resonance';
+    return 'Low overlap';
   }
 
-  getCacheKey(birthData) {
-    return JSON.stringify(birthData);
+  getCacheKey(data) {
+    return JSON.stringify([data.date,data.time,data.timezoneOffset,data.lat,data.lon]);
   }
 
-  // Export for backend sync
   async exportProfile(profile) {
-    return {
-      version: '1.0',
-      exported: new Date().toISOString(),
-      data: profile,
-    };
+    return { version: '2.0', exported: new Date().toISOString(), data: profile };
   }
 
-  // Import from backend
   async importProfile(exportData) {
-    if (exportData.version !== '1.0') {
-      throw new Error('Incompatible profile version');
-    }
+    if (!exportData?.data) throw new Error('Invalid profile export');
     return exportData.data;
   }
 }
 
-// Singleton instance
 export const consciousness = new ConsciousnessEngine();
