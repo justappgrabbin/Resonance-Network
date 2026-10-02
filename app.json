@@ -5,6 +5,10 @@
     "version": "1.0.1",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#07100f",
+      "resizeMode": "contain"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.stellarproximology.resonancenetwork"
