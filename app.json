@@ -2,7 +2,7 @@
   "expo": {
     "name": "Resonance Network",
     "slug": "resonance-network",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "splash": {
@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "com.stellarproximology.resonancenetwork",
-      "versionCode": 2
+      "versionCode": 3
     }
   }
 }

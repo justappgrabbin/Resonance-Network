@@ -4,7 +4,7 @@ import { consciousness } from './Core/ConsciousnessEngine';
 import { profileStore } from './Core/ProfileStore';
 
 const Button = ({ title, onPress, secondary=false, disabled=false }) => (
-  <TouchableOpacity style={[styles.button, secondary && styles.buttonSecondary, disabled && styles.buttonDisabled]} onPress={onPress} disabled={disabled}>
+  <TouchableOpacity accessibilityRole="button" accessibilityLabel={title} style={[styles.button, secondary && styles.buttonSecondary, disabled && styles.buttonDisabled]} onPress={onPress} disabled={disabled}>
     <Text style={[styles.buttonText, secondary && styles.buttonTextSecondary]}>{title}</Text>
   </TouchableOpacity>
 );
@@ -12,7 +12,7 @@ const Button = ({ title, onPress, secondary=false, disabled=false }) => (
 const Input = ({ label, ...props }) => (
   <View style={styles.inputGroup}>
     <Text style={styles.label}>{label}</Text>
-    <TextInput {...props} style={styles.input} placeholderTextColor="#667085" />
+    <TextInput accessibilityLabel={label} {...props} style={styles.input} placeholderTextColor="#667085" />
   </View>
 );
 
@@ -67,7 +67,7 @@ export const ProfileCreationScreen = ({ navigation }) => {
       <Input label="Longitude" value={form.lon} onChangeText={v=>set('lon',v)} placeholder="-122.4194" keyboardType="numbers-and-punctuation" />
       <Button title={calculating ? 'Calculating…' : 'Calculate + Save Profile'} onPress={calculate} disabled={calculating} />
       {calculating && <ActivityIndicator style={{marginTop:16}} color="#8df0d0" />}
-      <Text style={styles.note}>Calculations stay on-device. The current engine uses a local low-precision ephemeris for offline exploration; the UI labels that limitation instead of presenting it as Swiss Ephemeris precision.</Text>
+      <Text style={styles.note}>Calculations stay on-device. The geonatal layer uses the recovered IsoHuman astronomy-engine path, Fagan-Bradley sidereal math, interpolated true lunar node, and true-node draconic frame.</Text>
     </ScrollView>
   );
 };
@@ -89,7 +89,12 @@ export const ProfileScreen = ({ route, navigation }) => {
       </View>
       <Button title="Human Design BodyGraph Data" onPress={()=>navigation.navigate('HumanDesign',{profile})} />
       <Button title="Astrology Triad" secondary onPress={()=>navigation.navigate('Astrology',{profile})} />
+      <Button title="Cynthia" secondary onPress={()=>navigation.navigate('Cynthia',{profile})} />
       <Button title="Cynthia Field Lab" secondary onPress={()=>navigation.navigate('Lab',{profile})} />
+      <Button title="Stellar Proximology" secondary onPress={()=>navigation.navigate('Stellar',{profile})} />
+      <Button title="Relationship + Composite" secondary onPress={()=>navigation.navigate('Relationship',{profile})} />
+      <Button title="Timing + Transits" secondary onPress={()=>navigation.navigate('Timing',{profile})} />
+      <Button title="Profile Import / Export" secondary onPress={()=>navigation.navigate('Portability')} />
       <Button title="Resonance Matches" secondary onPress={()=>navigation.navigate('Matches',{profile})} />
       <Button title="Create / Add Another Profile" secondary onPress={()=>navigation.navigate('CreateProfile')} />
       <Text style={styles.sectionTitle}>Field layer</Text>

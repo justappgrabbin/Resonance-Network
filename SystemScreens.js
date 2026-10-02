@@ -87,7 +87,7 @@ export const AstrologyScreen = ({ route, navigation }) => {
         <Text style={styles.heroType}>{chart.system}</Text>
         <Text style={styles.heroLine}>Ascendant {chart.ascendant.sign} {fmt(chart.ascendant.degree)}°</Text>
         <Text style={styles.heroLine}>{chart.houseSystem}</Text>
-        {system==='sidereal' && <Text style={styles.heroLine}>Lahiri ayanamsa ≈ {fmt(profile.astrology.ayanamsa)}°</Text>}
+        {system==='sidereal' && <Text style={styles.heroLine}>Fagan-Bradley ayanamsa ≈ {fmt(profile.astrology.ayanamsa)}°</Text>}
       </View>
       <Text style={styles.section}>Planets</Text>
       {chart.positions.map(p=>(

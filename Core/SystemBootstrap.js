@@ -1,11 +1,11 @@
 import * as FileSystem from 'expo-file-system';
+import { capabilityRegistry } from './CapabilityRegistry';
 
 /**
- * Resonance Network local bootstrap.
+ * Resonance Network sovereign local bootstrap.
  *
- * This class only prepares local storage/config and reports the real engines
- * bundled in Core/. It intentionally does not generate placeholder/random
- * calculators or matchers.
+ * It prepares persistent local state and exposes the capabilities already
+ * bundled with the computer. It does not generate placeholder calculators.
  */
 export class SystemBootstrap {
   constructor() {
@@ -16,21 +16,19 @@ export class SystemBootstrap {
       'data/profiles',
       'data/cache',
       'data/trajectory',
+      'data/learning',
       'config',
     ];
     this.requiredFiles = {
       'config/app.json': JSON.stringify({
-        version: '1.0.1',
+        version: '1.0.2',
         name: 'Resonance Network',
         localFirst: true,
-        capabilities: {
-          humanDesign: true,
-          astrology: true,
-          resonanceMatching: true,
-          cynthiaLab: true,
-          trajectory: true,
-        },
+        sovereign: true,
+        profileOwner: 'user',
+        adaptersAreAuthority: false,
       }, null, 2),
+      'data/trajectory/events.json': '[]',
     };
   }
 
@@ -48,26 +46,14 @@ export class SystemBootstrap {
   }
 
   async init() {
-    this.emitLog('Starting local system initialization…');
+    this.emitLog('Starting sovereign local initialization…');
     await this.ensureDir(this.baseDir);
 
-    for (const dir of this.requiredDirs) {
-      await this.ensureDir(`${this.baseDir}${dir}/`);
-    }
+    for (const dir of this.requiredDirs) await this.ensureDir(`${this.baseDir}${dir}/`);
+    for (const [path, content] of Object.entries(this.requiredFiles)) await this.ensureFile(`${this.baseDir}${path}`, content);
 
-    for (const [path, content] of Object.entries(this.requiredFiles)) {
-      await this.ensureFile(`${this.baseDir}${path}`, content);
-    }
-
-    const capabilities = [
-      'HumanDesignEngine',
-      'AstroEngine',
-      'ConsciousnessEngine',
-      'ProfileStore',
-      'LabEngine',
-    ];
-
-    this.emitLog(`System ready. ${capabilities.length} real core capabilities registered.`);
+    const capabilities = capabilityRegistry.list();
+    this.emitLog(`System ready. ${capabilities.filter(c=>c.status==='active').length} executable local capabilities registered.`);
     return capabilities;
   }
 
@@ -83,7 +69,7 @@ export class SystemBootstrap {
     const info = await FileSystem.getInfoAsync(path);
     if (!info.exists) {
       await FileSystem.writeAsStringAsync(path, defaultContent);
-      this.emitLog(`Created local config: ${path}`);
+      this.emitLog(`Created local state: ${path}`);
     }
   }
 }

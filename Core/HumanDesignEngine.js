@@ -152,8 +152,8 @@ export class HumanDesignEngine {
     const birthDate = astrology.parseBirthDate(birthData);
     const birthSun = birthChart.positions.find(p => p.planet === 'Sun').longitude;
     let lo = 70;
-    let hi = 105;
-    for (let i = 0; i < 28; i += 1) {
+    let hi = 110;
+    for (let i = 0; i < 60; i += 1) {
       const days = (lo + hi) / 2;
       const candidate = new Date(birthDate.getTime() - days * 86400000);
       const sun = astrology.calculateTropical(candidate, Number(birthData?.lat || 0), Number(birthData?.lon || 0)).positions.find(p => p.planet === 'Sun').longitude;
