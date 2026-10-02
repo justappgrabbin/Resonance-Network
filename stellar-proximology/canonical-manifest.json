@@ -1,0 +1,40 @@
+{
+  "schema": "stellar-proximology/canonical-manifest/v1",
+  "name": "Stellar Proximology",
+  "version": "0.1.0",
+  "canonical_repository": "justappgrabbin/Resonance-Network",
+  "canonical_branch": "stellar-proximology",
+  "hosted_face": "https://bewitched-frivolous-opengroup--dfffrud.replit.app",
+  "mcp_endpoint": "https://bewitched-frivolous-opengroup--dfffrud.replit.app/mcp",
+  "sovereignty": {
+    "source_of_truth": "Resonance Network / portable local profile",
+    "hosted_face_is_authority": false,
+    "chatgpt_plugin_is_authority": false,
+    "profiles_should_be_portable": true
+  },
+  "artifacts": [
+    {
+      "name": "Stellar-Proximology-Sovereign-v0.1.0.zip",
+      "sha256": "75b50554f0b4f026802ea0b00bd1bb630bcf22bd51c0cd0bcaa3e50494733f56"
+    },
+    {
+      "name": "Stellar-Proximology-ChatGPT-Plugin-v0.1.0.zip",
+      "sha256": "7106a12cbcebbdb9503391274ed34de0f29ba23a9453d8fc7e6da3cfecfde8c9"
+    }
+  ],
+  "layers": [
+    "resonance-network",
+    "stellar-web",
+    "chatgpt-plugin",
+    "cynthia",
+    "human-design",
+    "astrology"
+  ],
+  "acceptance": {
+    "deployment_success_is_not_enough": true,
+    "requires_visible_render": true,
+    "requires_usable_navigation": true,
+    "deterministic_calculations": true,
+    "no_random_chart_values": true
+  }
+}
