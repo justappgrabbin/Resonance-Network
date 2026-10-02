@@ -1,4 +1,5 @@
 import * as FileSystem from 'expo-file-system';
+import { profileToResonancePacket, resonancePacketToProfile } from './ResonancePluginBridge.js';
 
 const ROOT = `${FileSystem.documentDirectory}ResonanceNetwork/data/`;
 const FILE = `${ROOT}profiles.json`;
@@ -52,5 +53,16 @@ export const profileStore = {
       state.currentId = id;
       await writeState(state);
     }
+  },
+
+  async exportCurrentPacket() {
+    const profile = await this.getCurrent();
+    if (!profile) throw new Error('No current Resonance profile to export');
+    return profileToResonancePacket(profile);
+  },
+
+  async importPacket(packet) {
+    const profile = resonancePacketToProfile(packet);
+    return this.save(profile, profile.name);
   },
 };
