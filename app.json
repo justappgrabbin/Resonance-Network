@@ -12,9 +12,6 @@
     "android": {
       "package": "com.stellarproximology.resonancenetwork",
       "versionCode": 2
-    },
-    "plugins": [
-      "expo-file-system"
-    ]
+    }
   }
 }
