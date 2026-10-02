@@ -18,10 +18,10 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Use Node 20
+      - name: Use Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Use Java 17
         uses: actions/setup-java@v4
@@ -39,6 +39,16 @@ jobs:
         env:
           CI: '1'
         run: npx expo prebuild --platform android --clean
+
+      - name: Patch generated splash color
+        run: |
+          mkdir -p android/app/src/main/res/values
+          cat > android/app/src/main/res/values/stellar_splash_colors.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+            <color name="splashscreen_background">#07100F</color>
+          </resources>
+          EOF
 
       - name: Build installable debug APK
         working-directory: android
