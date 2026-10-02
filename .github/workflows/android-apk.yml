@@ -1,0 +1,61 @@
+name: Build Resonance Network APK
+
+on:
+  push:
+    branches:
+      - stellar-proximology
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Use Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install JavaScript dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Verify Expo config
+        run: npx expo config --type public
+
+      - name: Generate Android native project
+        env:
+          CI: '1'
+        run: npx expo prebuild --platform android --clean
+
+      - name: Build installable debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Package APK and checksum
+        run: |
+          mkdir -p build-artifacts
+          cp android/app/build/outputs/apk/debug/app-debug.apk build-artifacts/Resonance-Network-Stellar-v1.0.1.apk
+          sha256sum build-artifacts/Resonance-Network-Stellar-v1.0.1.apk > build-artifacts/Resonance-Network-Stellar-v1.0.1.apk.sha256
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: resonance-network-stellar-apk
+          path: build-artifacts/*
+          if-no-files-found: error
+          retention-days: 30
