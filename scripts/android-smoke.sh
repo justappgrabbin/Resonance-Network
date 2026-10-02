@@ -9,6 +9,10 @@ mkdir -p "$OUT_DIR"
 
 log(){ printf '[android-smoke] %s\n' "$*"; }
 
+screen_height(){
+  adb shell wm size | tr -d '\r' | sed -n 's/.*x\([0-9][0-9]*\)$/\1/p' | tail -1
+}
+
 dump_ui(){
   adb shell uiautomator dump /sdcard/window.xml >/dev/null 2>&1 || true
   adb pull /sdcard/window.xml "$OUT_DIR/window.xml" >/dev/null 2>&1 || true
@@ -29,7 +33,7 @@ for node in root.iter('node'):
     desc=node.attrib.get('content-desc','')
     if needle in text or needle in desc:
         b=node.attrib.get('bounds','')
-        m=re.match(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]',b)
+        m=re.match(r'\[(\-?\d+),(\-?\d+)\]\[(\-?\d+),(\-?\d+)\]',b)
         if m:
             x1,y1,x2,y2=map(int,m.groups())
             print(f'{(x1+x2)//2} {(y1+y2)//2}')
@@ -55,11 +59,27 @@ wait_for(){
 
 tap_node(){
   local needle="$1"
-  local xy
-  xy="$(find_node "$needle")" || { log "cannot tap missing node: $needle"; return 1; }
-  log "tap: $needle @ $xy"
-  adb shell input tap $xy
-  sleep 1
+  local height
+  height="$(screen_height)"
+  height="${height:-1920}"
+  for ((attempt=1;attempt<=7;attempt++)); do
+    local xy x y
+    if xy="$(find_node "$needle" 2>/dev/null)"; then
+      read -r x y <<<"$xy"
+      if (( y > 80 && y < height - 120 )); then
+        log "tap: $needle @ $x $y"
+        adb shell input tap "$x" "$y"
+        sleep 1
+        return 0
+      fi
+    fi
+    log "scrolling to: $needle"
+    adb shell input swipe 540 $((height-280)) 540 420 350
+    sleep 1
+  done
+  dump_ui
+  log "cannot tap missing/off-screen node: $needle"
+  return 1
 }
 
 enter_text(){
