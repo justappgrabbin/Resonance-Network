@@ -55,17 +55,26 @@ jobs:
               p.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n  <color name="splashscreen_background">#07100F</color>\n</resources>\n')
           PY
 
-      - name: Build installable debug APK
+      - name: Build standalone release APK
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Verify standalone APK payload
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          test -f "$APK"
+          unzip -t "$APK"
+          unzip -l "$APK" | tee /tmp/apk-contents.txt
+          grep -q 'assets/index.android.bundle' /tmp/apk-contents.txt
+          test "$(stat -c%s "$APK")" -gt 1000000
 
       - name: Package APK and checksum
         run: |
           mkdir -p build-artifacts
-          cp android/app/build/outputs/apk/debug/app-debug.apk build-artifacts/Resonance-Network-Stellar-v1.0.1.apk
-          sha256sum build-artifacts/Resonance-Network-Stellar-v1.0.1.apk > build-artifacts/Resonance-Network-Stellar-v1.0.1.apk.sha256
+          cp android/app/build/outputs/apk/release/app-release.apk build-artifacts/Resonance-Network-Stellar-v1.0.2.apk
+          sha256sum build-artifacts/Resonance-Network-Stellar-v1.0.2.apk > build-artifacts/Resonance-Network-Stellar-v1.0.2.apk.sha256
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
