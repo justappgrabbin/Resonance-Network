@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "stellar-proximology",
+  "version": "0.1.0",
+  "description": "Human Design, astrology, and Cynthia-grounded interpretation with a portable path into the sovereign Resonance Network.",
+  "license": "MIT",
+  "keywords": ["human-design", "astrology", "cynthia", "resonance", "bodygraph", "sidereal", "draconic"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Stellar Proximology",
+        "shortDescription": "Human Design + astrology + Cynthia",
+        "longDescription": "Calculate structured Human Design and astrology facts, explore them conversationally with Cynthia-grounded interpretation, compare relationships and timing, and keep profiles portable into the sovereign Resonance Network."
+      }
+    }
+  }
+}
