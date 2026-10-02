@@ -18,10 +18,10 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Use Node 22
+      - name: Use Node 20
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
 
       - name: Use Java 17
         uses: actions/setup-java@v4
@@ -40,15 +40,20 @@ jobs:
           CI: '1'
         run: npx expo prebuild --platform android --clean
 
-      - name: Patch generated splash color
+      - name: Repair generated splash color resource
         run: |
-          mkdir -p android/app/src/main/res/values
-          cat > android/app/src/main/res/values/stellar_splash_colors.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-            <color name="splashscreen_background">#07100F</color>
-          </resources>
-          EOF
+          python - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/src/main/res/values/colors.xml")
+          p.parent.mkdir(parents=True, exist_ok=True)
+          if p.exists():
+              text = p.read_text()
+              if 'name="splashscreen_background"' not in text:
+                  text = text.replace("</resources>", '  <color name="splashscreen_background">#07100F</color>\n</resources>')
+                  p.write_text(text)
+          else:
+              p.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n  <color name="splashscreen_background">#07100F</color>\n</resources>\n')
+          PY
 
       - name: Build installable debug APK
         working-directory: android
