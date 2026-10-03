@@ -1,0 +1,11 @@
+RESONANCE v13 — NEXT STEP
+
+1. Keep GitHub branch synthia-live-vertical-slice-2026-10-02 as the source/recovery branch.
+2. Build the exact integrated HTML whose SHA-256 is:
+   a0666009a22eefac5854cb1d6bcfb2378ba9902116292fe0671d0625b78811d3
+3. Use scripts/build-resonance-v13-termux.sh with York.
+4. Install the resulting APK.
+5. Test Cynthia-first Purpose onboarding, one shared Human Design/astrology calculation, pathway creation, existing app surfaces, and restart persistence.
+6. If that passes, merge PR #2 and cut the v13 release.
+
+The build script intentionally refuses any integrated HTML whose hash does not match the verified v13 snapshot.
