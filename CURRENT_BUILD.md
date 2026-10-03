@@ -1,35 +1,77 @@
-# Current Resonance Computer build
+# Current Resonance app build
 
-Current artifact generation: **v12**
+Current artifact generation: **v13**
 
-- Computer: `Synthia-Resonance-Computer-Integrated-v12.html`
-- SHA-256: `87aceb67f750252a9860fcb3751767c184d88a3ed470cedef8c5b143850659f6`
-- York kit: `Synthia-Resonance-Computer-York-Kit-v12.zip`
-- SHA-256: `5351b6bdbc6eb739f070d1556b83685f78700c5faf279ed08ec3756be2d55b38`
+- Integrated app: `Synthia-Resonance-Computer-Integrated-v13.html`
+- SHA-256: `a0666009a22eefac5854cb1d6bcfb2378ba9902116292fe0671d0625b78811d3`
+- York kit: `Synthia-Resonance-Computer-York-Kit-v13.zip`
+- SHA-256: `b7deb345d0cca1788764bf7734af0be24b734954b2612d5e779329a316e3742b`
 - Persistent destination: ChatGPT Library `/Resonance Builds`
 - Resonance PR: #2
 - Optional peer signaling: `justappgrabbin/Synthia-server` PR #13 (draft; CI green; not yet claimed deployed)
 
-## v12 nervous-system/communication recovery
+## v13 is a merge, not a replacement
 
-v12 does **not** introduce a replacement nervous-system architecture.
+v13 is built from the **latest canonical v12** and keeps its state-space / communication recovery intact.
 
-It preserves the current Foundation, execution spine, Pure-Synthia mesh, ATO, Tool Factory, swarm, world, social network and existing Klein tool population.
+Between latest v12 and v13:
+- the import map still contains **223 embedded JavaScript modules**;
+- the seven `synthia/vendor/ato-klein-state/*` modules are byte-for-byte preserved;
+- the latest v12 `synthia/src/foundation.mjs` is byte-for-byte preserved (SHA-256 `b9c28f76644a28024f538e1998548763bcd9e3a225c3419af25f026ef8cb11e0`);
+- only `synthia/src/desktop-app.mjs` changes in the import map, to add Purpose Fulfillment / first contact.
 
-The supplied ATO/Klein state-space from `ATO-Core-Klein-Browser-v0.4.0-gate-content-3.zip` is mounted read-only as a relationship/content authority. It contributes Gate/GLCTB state vectors, gate content and structural association while the current resident tools remain in the current mesh.
+## v12 nervous-system / communication recovery retained
 
-Conversation turns now land a `synthia.klein-thought.v12` record containing:
-- current canonical GLCTB address;
-- current state-space vector;
-- gate content (center/circuit/keynote/archetype);
-- all five dimensional state-space views for that gate;
-- 5W and Klein process-language analysis already computed by Foundation;
-- existing deep Klein contact stages (DISEMINER, Language Contact, Historical Monte Carlo, AUTOLING, Grammar Coder);
-- state-space relationships between the current addressed state and the existing Klein tools;
-- an I Ching Grammar interpretation driven directly from the current six-line state.
+The current Foundation, execution spine, Pure-Synthia mesh, ATO, Tool Factory, swarm, world, social network and existing Klein tool population remain in place.
 
-Non-chat text/artifact ingestion does not fabricate a thought record.
+The supplied ATO/Klein state-space remains read-only relationship/content authority for Gate/GLCTB vectors, gate content and structural association. Conversation thought records still carry the actual state-space address, five-dimensional state, Foundation 5W/process-language results, existing Klein contact stages, tool/state relations and I Ching Grammar interpretation. The resident language layer continues reading that landed record.
 
-The resident language layer reads that landed thought record before falling back to unresolved-contact language. The old fixed desktop greeting response is removed; executable command shortcuts still execute real actions.
+## v13 Purpose Fulfillment
 
-This is reconnective glue over supplied pieces, not a new replacement cognition stack.
+First-time entry now opens Cynthia's Purpose conversation before the menu.
+
+Cynthia asks about:
+- name;
+- origin / what shaped the person;
+- current self-understanding;
+- purpose (including `I don't know`);
+- present life;
+- desired life;
+- happiness / dissatisfaction;
+- blockers;
+- strengths;
+- recurring interests.
+
+Those answers persist locally as `resonance:purpose` and are best-effort landed into the **same Foundation journal**. This is pathway state for the existing Cynthia, not a second chatbot.
+
+When the intake is complete:
+- if an origin/profile calculation already exists, Purpose reuses it;
+- otherwise Cynthia routes to the existing Profile calculation once;
+- the existing `consciousness.calculateProfile` path remains the single Human Design + astrology calculation;
+- Purpose does **not** introduce a second chart engine.
+
+The initial pathway is `Discover`, `Unblock`, or `Experiment` based on what the person actually said, then informed by the saved Human Design **Type, Strategy, Authority and Profile**. The user-facing result is ordinary language: current state, desired state, friction, design lens, next move, decision check, and what evidence to bring back from reality.
+
+The intended loop is:
+
+`possibility -> action -> observed outcome -> discrepancy/evidence -> next pathway`
+
+## Preserved app surfaces
+
+Home / Purpose / Profile / Human Design / Astrology / Cynthia / Network / Work remain available, along with Text, Peek, Voice, Video, Agentic Reality, Live Morph, preserved House, authorized work, social projects/openings/invitations, portable packets and optional P2P direct messaging.
+
+## Verification
+
+- **223 / 223 embedded JavaScript modules parse cleanly**.
+- v13 York ZIP integrity passes.
+- York wrapper passes shell syntax validation and verifies the exact v13 HTML hash before Android compilation.
+- Android `INTERNET` + `RECORD_AUDIO` wrapper patches are retained.
+- The native React Native source branch also contains the Purpose store, engine, screens, return-to-Purpose profile flow and Purpose-first entry/home integration.
+
+## Still not claimed
+
+- A v13 APK has not been compiled in this environment because the York Android compiler is not installed here; the v13 York kit packages the exact verified source on the Android/Termux York setup.
+- continuous execution after Android fully suspends/kills the process;
+- four finished ModelInterface model-maker outputs mounted;
+- user-camera video;
+- exact lower-substructure -> visible phenotype laws.
