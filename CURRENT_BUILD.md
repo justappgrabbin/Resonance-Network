@@ -5,7 +5,7 @@ Current artifact generation: **v11**
 - Computer: `Synthia-Resonance-Computer-Integrated-v11.html`
 - SHA-256: `26d9bb15529f47a249667355a6e74ba450dddf1c09fd11fc11340d5f59409a5a`
 - York kit: `Synthia-Resonance-Computer-York-Kit-v11.zip`
-- SHA-256: `9dfd34f473cd43f3c665cd3ebfba431f332ea30e792cdd6f045f165f51d86c6a`
+- SHA-256: `50f3061cfbcb35b29d6ff5103f9a35266e89514848423f1815e4a81b237219ea`
 - Persistent destination: ChatGPT Library `/Resonance Builds`
 - Resonance PR: #2
 - Optional peer signaling: `justappgrabbin/Synthia-server` PR #13 (draft; two-peer CI green; not yet claimed deployed)
