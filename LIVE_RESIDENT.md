@@ -1,4 +1,4 @@
-# Live resident vertical slice — v8 checkpoint
+# Live resident vertical slice — v13 checkpoint
 
 This branch preserves the normal Resonance Network pages and records the live-resident integration checkpoint used by the current **Synthia Resonance Computer v10**.
 
@@ -73,7 +73,7 @@ Server-side signaling work lives in `justappgrabbin/Synthia-server` PR #13.
 
 PR #13 remains draft/unmerged, so live hosted signaling should **not** be claimed deployed yet. Offline packet export/import remains independent.
 
-## Verified on v10
+## Verified on v13
 
 - 216 embedded JavaScript modules parse successfully.
 - York ZIP integrity passes.
@@ -96,3 +96,16 @@ If more than 15 seconds pass without a confirmed resident heartbeat, the next re
 ## Private direct messages
 
 Once two Resonance computers have a direct WebRTC DataChannel, the Network page can send endpoint-private direct messages. These messages are persisted on the participating computers and land private local Foundation receipts. They are **not** added to `resonance.network.packet.v1`, so exporting or broadcasting the social packet does not export private direct conversation.
+
+
+## v12 state-space communication recovery
+
+The eight current Klein tools remain in the existing Pure-Synthia mesh. The supplied ATO/Klein state-space is read-only authority for Gate/GLCTB vectors, gate content and structural association. Conversation turns land the state-space thought record used by the resident language layer. No duplicate Cynthia, duplicate Klein population, or replacement nervous system is introduced.
+
+## v13 Purpose Fulfillment
+
+Purpose is now first contact for an unfinished/new local profile. Cynthia records the person's own identity/purpose/current-state/destination/blocker/strength/interest answers locally, then reuses the **same** existing Human Design + astrology origin calculation. It does not calculate a second chart.
+
+The first pathway combines what the person said with their existing Human Design Type, Strategy, Authority and Profile and turns it into a small next test plus an evidence-return loop. The result is phrased in ordinary language; Human Design remains part of the internal decision structure rather than being omitted.
+
+Current v13 artifacts are documented in `CURRENT_BUILD.md` and Library `/Resonance Builds/CURRENT.txt`.
