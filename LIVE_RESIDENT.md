@@ -1,6 +1,6 @@
 # Live resident vertical slice — v8 checkpoint
 
-This branch preserves the normal Resonance Network pages and records the live-resident integration checkpoint used by the current **Synthia Resonance Computer v8**.
+This branch preserves the normal Resonance Network pages and records the live-resident integration checkpoint used by the current **Synthia Resonance Computer v10**.
 
 ## Identity law
 
@@ -13,10 +13,10 @@ This branch preserves the normal Resonance Network pages and records the live-re
 
 The persistent user artifact is stored in the user's ChatGPT Library under **/Resonance Builds**:
 
-- `Synthia-Resonance-Computer-Integrated-v8.html`
-  - SHA-256 `a582ebbd8bee9b4a88f1311503e8dee906e6289e61f132ee8bdde309332279e3`
-- `Synthia-Resonance-Computer-York-Kit-v8.zip`
-  - SHA-256 `ef9b5fcac2e10ad195ef185cbe9b8d07dde24872545665a1b97679c80a430174`
+- `Synthia-Resonance-Computer-Integrated-v10.html`
+  - SHA-256 `5d684a51ef3f4fbe7b855b8cc515f538cd656abde07c5a4f50f70106f0898f75`
+- `Synthia-Resonance-Computer-York-Kit-v10.zip`
+  - SHA-256 `41870dfc3a032cd85890fbd1d8b9982c5c40347a40542bb55b17710d14dd80ed`
 
 The York kit builds a disposable compiler workspace, verifies the exact v8 HTML hash before compilation, and leaves canonical York/source history untouched.
 
@@ -73,7 +73,7 @@ Server-side signaling work lives in `justappgrabbin/Synthia-server` PR #13.
 
 PR #13 remains draft/unmerged, so live hosted signaling should **not** be claimed deployed yet. Offline packet export/import remains independent.
 
-## Verified on v8
+## Verified on v10
 
 - 216 embedded JavaScript modules parse successfully.
 - York ZIP integrity passes.
@@ -87,3 +87,12 @@ PR #13 remains draft/unmerged, so live hosted signaling should **not** be claime
 - four model-maker outputs still need to be identified/mounted;
 - speech recognition availability depends on the Android/browser WebView;
 - dormant legacy PDF ingestion still has its old optional `pdfjs-dist` dependency.
+
+
+## Resume truthfulness
+
+If more than 15 seconds pass without a confirmed resident heartbeat, the next resume lands a `resident-execution-gap` with the previous heartbeat, current time, elapsed duration, and `fabricatedEvents:false`. No work, memories, travel, social events, or autonomous cycles are invented for the unconfirmed interval.
+
+## Private direct messages
+
+Once two Resonance computers have a direct WebRTC DataChannel, the Network page can send endpoint-private direct messages. These messages are persisted on the participating computers and land private local Foundation receipts. They are **not** added to `resonance.network.packet.v1`, so exporting or broadcasting the social packet does not export private direct conversation.
