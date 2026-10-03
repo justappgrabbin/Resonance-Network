@@ -1,77 +1,60 @@
-# Current Resonance app build
+# Current Resonance Computer build
 
-Current artifact generation: **v13**
+Current artifact generation: **Reassembled v13**
 
-- Integrated app: `Synthia-Resonance-Computer-Integrated-v13.html`
-- SHA-256: `a0666009a22eefac5854cb1d6bcfb2378ba9902116292fe0671d0625b78811d3`
-- York kit: `Synthia-Resonance-Computer-York-Kit-v13.zip`
-- SHA-256: `b7deb345d0cca1788764bf7734af0be24b734954b2612d5e779329a316e3742b`
+- Computer: `Synthia-Resonance-Computer-Reassembled-v13.html`
+- SHA-256: `2a05a66e031b0cfb5da6403696663aa2f34659584315c767272dd8a970632cdc`
+- York kit: `Synthia-Resonance-Computer-York-Kit-Reassembled-v13.zip`
+- SHA-256: `a890c9ff318d8c73a9f4678a1f89c3964c6247b8489bbc109a05dfe149ed6941`
 - Persistent destination: ChatGPT Library `/Resonance Builds`
 - Resonance PR: #2
-- Optional peer signaling: `justappgrabbin/Synthia-server` PR #13 (draft; CI green; not yet claimed deployed)
 
-## v13 is a merge, not a replacement
+## Reassembly law
 
-v13 is built from the **latest canonical v12** and keeps its state-space / communication recovery intact.
+This checkpoint starts from the liked v11 computer and reconnects the user's existing integrated Synthia system. It is not a replacement cognition architecture.
 
-Between latest v12 and v13:
-- the import map still contains **223 embedded JavaScript modules**;
-- the seven `synthia/vendor/ato-klein-state/*` modules are byte-for-byte preserved;
-- the latest v12 `synthia/src/foundation.mjs` is byte-for-byte preserved (SHA-256 `b9c28f76644a28024f538e1998548763bcd9e3a225c3419af25f026ef8cb11e0`);
-- only `synthia/src/desktop-app.mjs` changes in the import map, to add Purpose Fulfillment / first contact.
+Preserved host/computer:
+- v11 desktop and Resonance surfaces
+- Files / Tools / To Do / Build / Browser / Settings
+- real Foundation host actions, Hover/Android hands, local storage, world/swarm/network work already present
 
-## v12 nervous-system / communication recovery retained
+Restored ordinary-conversation path:
+- original `SynthiaRuntime`
+- `LivingMeshRuntime`
+- `MorphChatRuntime` as conversational port into the mesh
+- `ProportionOfPerspective`
+- original shared mesh tool population
+- Connection Field
+- Generative Channel Field
+- Human Design GNN
+- neural architecture runtime
+- native grammar
+- existing ATO / Tool Factory / synthesis runtime from the integrated bundle
 
-The current Foundation, execution spine, Pure-Synthia mesh, ATO, Tool Factory, swarm, world, social network and existing Klein tool population remain in place.
+The newer desktop `ResidentLanguageRealizer` is not used for ordinary conversation in this checkpoint. Real desktop commands still execute through the host.
 
-The supplied ATO/Klein state-space remains read-only relationship/content authority for Gate/GLCTB vectors, gate content and structural association. Conversation thought records still carry the actual state-space address, five-dimensional state, Foundation 5W/process-language results, existing Klein contact stages, tool/state relations and I Ching Grammar interpretation. The resident language layer continues reading that landed record.
+## Runtime verification
 
-## v13 Purpose Fulfillment
+A browser execution test of this exact artifact produced:
+- 35 live mesh automata
+- 16 canonical tools
+- neural modules: connectionField, generativeChannels, humanDesignGNN, neuralArchitecture
+- canonical addressing and semantic mesh routing on an ordinary chat turn
+- Connection Field and native-grammar reactions
+- separate ProportionOfPerspective observations
+- conversation history affecting the next Evolution perspective
+- ordinary chat source marker: `original-integrated-synthia`
+- `calculate 6 * 7` -> `42` as a real host action
+- zero browser page/runtime errors
 
-First-time entry now opens Cynthia's Purpose conversation before the menu.
+York kit:
+- exact source SHA is enforced before build
+- build script passes `bash -n`
+- ZIP integrity test passes
+- INTERNET and RECORD_AUDIO permissions retained
 
-Cynthia asks about:
-- name;
-- origin / what shaped the person;
-- current self-understanding;
-- purpose (including `I don't know`);
-- present life;
-- desired life;
-- happiness / dissatisfaction;
-- blockers;
-- strengths;
-- recurring interests.
+## Known remaining gap
 
-Those answers persist locally as `resonance:purpose` and are best-effort landed into the **same Foundation journal**. This is pathway state for the existing Cynthia, not a second chatbot.
+The original `LocalMorphProvider` remains a primitive/template-like final wording layer. This checkpoint deliberately leaves it visible rather than replacing it with another invented chat architecture. The nervous-system/mesh path is restored first; final language realization can be repaired from existing language-mesh pieces next.
 
-When the intake is complete:
-- if an origin/profile calculation already exists, Purpose reuses it;
-- otherwise Cynthia routes to the existing Profile calculation once;
-- the existing `consciousness.calculateProfile` path remains the single Human Design + astrology calculation;
-- Purpose does **not** introduce a second chart engine.
-
-The initial pathway is `Discover`, `Unblock`, or `Experiment` based on what the person actually said, then informed by the saved Human Design **Type, Strategy, Authority and Profile**. The user-facing result is ordinary language: current state, desired state, friction, design lens, next move, decision check, and what evidence to bring back from reality.
-
-The intended loop is:
-
-`possibility -> action -> observed outcome -> discrepancy/evidence -> next pathway`
-
-## Preserved app surfaces
-
-Home / Purpose / Profile / Human Design / Astrology / Cynthia / Network / Work remain available, along with Text, Peek, Voice, Video, Agentic Reality, Live Morph, preserved House, authorized work, social projects/openings/invitations, portable packets and optional P2P direct messaging.
-
-## Verification
-
-- **223 / 223 embedded JavaScript modules parse cleanly**.
-- v13 York ZIP integrity passes.
-- York wrapper passes shell syntax validation and verifies the exact v13 HTML hash before Android compilation.
-- Android `INTERNET` + `RECORD_AUDIO` wrapper patches are retained.
-- The native React Native source branch also contains the Purpose store, engine, screens, return-to-Purpose profile flow and Purpose-first entry/home integration.
-
-## Still not claimed
-
-- A v13 APK has not been compiled in this environment because the York Android compiler is not installed here; the v13 York kit packages the exact verified source on the Android/Termux York setup.
-- continuous execution after Android fully suspends/kills the process;
-- four finished ModelInterface model-maker outputs mounted;
-- user-camera video;
-- exact lower-substructure -> visible phenotype laws.
+Other prior non-claims remain: guaranteed execution after Android fully kills the process, four verified finished local model outputs, user-camera video, and frozen Color/Tone/Base visible phenotype semantics.
