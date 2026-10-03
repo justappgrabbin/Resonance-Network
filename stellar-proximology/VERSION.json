@@ -1,0 +1,12 @@
+{
+  "name": "Stellar Proximology",
+  "version": "0.1.0",
+  "role": "public-and-chatgpt-facing-second-face",
+  "sovereign_host": "Resonance Network",
+  "hosted_face": "https://bewitched-frivolous-opengroup--dfffrud.replit.app",
+  "mcp_endpoint": "https://bewitched-frivolous-opengroup--dfffrud.replit.app/mcp",
+  "source_archive_drive_id": "19IoK5KZ-Ds9JqbP85lpCFwMlxVlvXcNh",
+  "source_archive_name": "biverse-guide-synthia-mesh-learning-corrected-2.zip",
+  "profile_authority": "user",
+  "web_is_authoritative": false
+}
