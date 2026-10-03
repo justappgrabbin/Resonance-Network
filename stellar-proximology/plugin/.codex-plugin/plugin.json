@@ -1,0 +1,12 @@
+{
+  "name": "stellar-proximology",
+  "version": "0.1.0",
+  "description": "Human Design, astrology, and Cynthia-grounded interpretation with a sovereign Resonance path.",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Stellar Proximology",
+    "shortDescription": "Human Design + astrology + Cynthia",
+    "longDescription": "Calculate Human Design and astrology facts, explore them with Cynthia-grounded interpretation, and keep profiles portable into Resonance Network."
+  }
+}
