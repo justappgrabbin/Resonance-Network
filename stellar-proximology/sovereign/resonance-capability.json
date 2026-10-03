@@ -1,0 +1,33 @@
+{
+  "id": "stellar-proximology",
+  "name": "Stellar Proximology",
+  "version": "0.1.0",
+  "kind": "resonance-capability",
+  "sovereign": true,
+  "portableProfile": true,
+  "capabilities": [
+    "human-design.chart",
+    "human-design.bodygraph",
+    "human-design.interpretation",
+    "astrology.tropical",
+    "astrology.sidereal-fagan-bradley",
+    "astrology.draconic-true-node",
+    "relationship.compare",
+    "timing.transits",
+    "cynthia.cognition",
+    "profile.import-export"
+  ],
+  "entrypoints": {
+    "pythonApi": "human_design.web_api:app",
+    "health": "/api/health",
+    "geonatal": "/api/geonatal",
+    "chart": "/api/charts",
+    "chat": "/api/chat",
+    "cynthia": "/api/cognition/chat"
+  },
+  "ownership": {
+    "profileAuthority": "user",
+    "defaultStorage": "local",
+    "webIsAuthoritative": false
+  }
+}
