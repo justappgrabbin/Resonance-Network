@@ -16,9 +16,9 @@ const Input = ({ label, ...props }) => (
   </View>
 );
 
-export const ProfileCreationScreen = ({ navigation }) => {
+export const ProfileCreationScreen = ({ navigation, route }) => {
   const [form, setForm] = useState({
-    name: '', date: '1990-01-01', time: '12:00:00', timezoneOffset: '0', city: '', lat: '', lon: '',
+    name: route.params?.name || '', date: '1990-01-01', time: '12:00:00', timezoneOffset: '0', city: '', lat: '', lon: '',
   });
   const [calculating, setCalculating] = useState(false);
   const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
@@ -45,7 +45,11 @@ export const ProfileCreationScreen = ({ navigation }) => {
       };
       const profile = await consciousness.calculateProfile(birthData);
       const saved = await profileStore.save(profile, birthData.name);
-      navigation.replace('Profile', { profile: saved });
+      if (route.params?.returnTo) {
+        navigation.replace(route.params.returnTo, { profile: saved });
+      } else {
+        navigation.replace('Profile', { profile: saved });
+      }
     } catch (error) {
       Alert.alert('Calculation error', error.message || String(error));
     } finally {
