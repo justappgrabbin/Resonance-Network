@@ -8,6 +8,7 @@ import { profileStore } from './Core/ProfileStore';
 import { ProfileCreationScreen, ProfileScreen, MatchingScreen } from './ProfileScreens';
 import { HumanDesignScreen, AstrologyScreen } from './SystemScreens';
 import LabScreen from './LabScreen';
+import AgentContactScreen from './AgentScreens';
 
 const Stack = createStackNavigator();
 
@@ -25,6 +26,7 @@ export default function App() {
   return <NavigationContainer>
     <Stack.Navigator initialRouteName="Home" screenOptions={{headerStyle:{backgroundColor:'#07100f'},headerTintColor:'#dff7f1',headerTitleStyle:{fontWeight:'800'},cardStyle:{backgroundColor:'#07100f'}}}>
       <Stack.Screen name="Home" component={HomeScreen} options={{title:'Resonance Network'}}/>
+      <Stack.Screen name="Cynthia" component={AgentContactScreen} options={{title:'Cynthia'}}/>
       <Stack.Screen name="CreateProfile" component={ProfileCreationScreen} options={{title:'Create Profile'}}/>
       <Stack.Screen name="Profile" component={ProfileScreen}/>
       <Stack.Screen name="HumanDesign" component={HumanDesignScreen} options={{title:'Human Design'}}/>
@@ -41,13 +43,14 @@ function HomeScreen({navigation}){
   const go=(screen)=> profile ? navigation.navigate(screen,{profile}) : navigation.navigate('CreateProfile');
   return <ScrollView style={styles.home} contentContainerStyle={styles.homeContent}>
     <Text style={styles.eyebrow}>LOCAL-FIRST CREATOR RESONANCE SYSTEM</Text>
-    <Text style={styles.homeTitle}>One profile. Multiple maps. One network.</Text>
-    <Text style={styles.homeBody}>Human Design, tropical/sidereal/draconic astrology, field resonance, matching, and the Cynthia Lab now share the same birth data and calculation layer.</Text>
+    <Text style={styles.homeTitle}>One profile. One resident. Multiple ways in.</Text>
+    <Text style={styles.homeBody}>Human Design, astrology, resonance, Cynthia, and Agentic Reality share the same local system. The normal pages remain the default; the world is optional.</Text>
     {profile ? <View style={styles.current}><Text style={styles.currentLabel}>CURRENT PROFILE</Text><Text style={styles.currentName}>{profile.name}</Text><Text style={styles.currentMeta}>{profile.humanDesign.type} • {profile.humanDesign.profile} • {profile.humanDesign.authority}</Text></View> : <View style={styles.current}><Text style={styles.currentName}>No profile yet</Text><Text style={styles.currentMeta}>Create one to activate the system.</Text></View>}
     <HomeButton title={profile?'Open Current Profile':'Create Profile'} onPress={()=>profile?navigation.navigate('Profile',{profile}):navigation.navigate('CreateProfile')}/>
+    <View style={styles.tileRow}><Tile title="Cynthia" caption="Text · call · peek" onPress={()=>navigation.navigate('Cynthia')}/><Tile title="Matches" caption="People + resonance" onPress={()=>go('Matches')}/></View>
     <View style={styles.tileRow}><Tile title="Human Design" caption="BodyGraph mechanics" onPress={()=>go('HumanDesign')}/><Tile title="Astrology" caption="Triad engine" onPress={()=>go('Astrology')}/></View>
-    <View style={styles.tileRow}><Tile title="Cynthia Lab" caption="6 connected experiments" onPress={()=>go('Lab')}/><Tile title="Matches" caption="Real saved profiles" onPress={()=>go('Matches')}/></View>
-    <Text style={styles.homeNote}>No random gates, random waveforms, or random sample matches are used in the live path.</Text>
+    <View style={styles.tileRow}><Tile title="Cynthia Lab" caption="Connected experiments" onPress={()=>go('Lab')}/><Tile title="Profile" caption="Your normal pages" onPress={()=>profile?navigation.navigate('Profile',{profile}):navigation.navigate('CreateProfile')}/></View>
+    <Text style={styles.homeNote}>Agentic Reality is an optional surface. Resonance does not create a second Cynthia when you open chat or Peek.</Text>
   </ScrollView>;
 }
 
