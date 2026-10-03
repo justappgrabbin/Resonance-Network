@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "stellar_proximology": {
+      "type": "streamable-http",
+      "url": "https://bewitched-frivolous-opengroup--dfffrud.replit.app/mcp"
+    }
+  }
+}
