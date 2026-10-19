@@ -35,6 +35,16 @@ jobs:
           java-version: '17'
       - name: Install exact project dependencies
         run: npm install --no-audit --no-fund --legacy-peer-deps
+      - name: Restore existing family artwork for missing Expo image paths
+        run: |
+          mkdir -p assets
+          curl --fail --location --retry 3 --silent --show-error \
+            https://raw.githubusercontent.com/justappgrabbin/Synthai2/main/client/public/icons/icon-512.png \
+            -o assets/icon.png
+          test -s assets/icon.png
+          cp assets/icon.png assets/adaptive-icon.png
+          cp assets/icon.png assets/splash.png
+          cp assets/icon.png assets/favicon.png
       - name: Generate native Android project from existing Expo app
         run: npx expo prebuild --platform android --no-install --clean
       - name: Build locally installable Android debug APK
