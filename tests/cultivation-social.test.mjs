@@ -90,3 +90,40 @@ test('real SynthAi CultivationEngine begin, observe, act and integrate survive j
     cycleId:initial.cycleId,experimentId:'existing-lab',rating:'helped'
   }),/not awaiting an outcome/);
 });
+
+test('recovered Synthia relational donor learns only from explicit message outcomes',async()=>{
+  const relationDonor=await readFile(new URL('donors/SynthiaResonanceNetwork.js',root),'utf8');
+  let bridge=await readFile(new URL('CommunityRelations.js',root),'utf8');
+  bridge=bridge.replace("'./donors/SynthiaResonanceNetwork'", `'${dataUrl(relationDonor)}'`);
+  const {communityRelations,hasReviewedPeerMessage}=await import(dataUrl(bridge));
+  const events=[
+    {id:'recv-1',profileId:'person-a',type:'peer-incoming',payload:{
+      senderId:'person-b',senderName:'Friend',messageId:'m1',text:'hello'
+    }},
+    {id:'vote-1',profileId:'person-a',type:'peer-feedback',payload:{
+      senderId:'person-b',messageId:'m1',rating:'helped'
+    }},
+    {id:'recv-2',profileId:'person-a',type:'peer-incoming',payload:{
+      senderId:'person-b',senderName:'Friend',messageId:'m2',text:'another'
+    }}
+  ];
+  const s1=communityRelations(events,'person-a');
+  assert.equal(s1.totalReports,1);
+  assert.equal(s1.peers[0].selfReportedFeedbackCount,1);
+  assert.ok(s1.peers[0].usefulnessSignal>0);
+  assert.equal(hasReviewedPeerMessage(events,'person-a',{
+    senderId:'person-b',messageId:'m1'
+  }),true);
+  assert.equal(hasReviewedPeerMessage(events,'person-a',{
+    senderId:'person-b',messageId:'m2'
+  }),false);
+  events.push({id:'vote-2',profileId:'person-a',type:'peer-feedback',payload:{
+    senderId:'person-b',messageId:'m2',rating:'not-helpful'
+  }});
+  const s2=communityRelations(events,'person-a');
+  assert.equal(s2.totalReports,2);
+  assert.equal(s2.peers[0].selfReportedFeedbackCount,2);
+  assert.ok(s2.peers[0].usefulnessSignal<s1.peers[0].usefulnessSignal);
+  assert.equal(communityRelations(events,'person-other').totalReports,0);
+  assert.equal(communityRelations(events.filter(e=>e.type!=='peer-feedback'),'person-a').totalReports,0);
+});
