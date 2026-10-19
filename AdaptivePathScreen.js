@@ -6,6 +6,7 @@ import {
 import { profileStore } from './Core/ProfileStore';
 import { lab, LAB_EXPERIMENTS } from './Core/LabEngine';
 import { journeyJournal } from './Core/JourneyJournal';
+import { makeCultivationBridge } from './Core/CultivationBridge';
 import {
   activeGoal, explainRecommendation, pendingRecommendation, rankExperiments
 } from './Core/AdaptiveLabPlanner';
@@ -101,7 +102,18 @@ export default function AdaptivePathScreen({ navigation, route }) {
   const chooseNext = () => run(async () => {
     const best = ranked[0];
     if (!currentGoal || !best) throw new Error('Save your goal first.');
+    // Delegate the lifecycle to the existing SynthAi Computer CultivationEngine.
+    const cycle = await makeCultivationBridge(profile.id, events).beginAndAct({
+      goal: currentGoal.payload.text,
+      experiment: best.experiment,
+      evidence: {
+        observationIds: observations.map(o => o.id),
+        actualReviews: events.filter(e => e.type === 'review' &&
+          e.payload?.rating !== 'not-tried').length
+      }
+    });
     await journeyJournal.append(profile.id, 'recommendation', {
+      cycleId: cycle.cycleId,
       goalEventId: currentGoal.id,
       experimentId: best.experiment.id,
       catalogSource: 'Core/LabEngine.js',
@@ -115,7 +127,19 @@ export default function AdaptivePathScreen({ navigation, route }) {
   const review = rating => run(async () => {
     if (!pending) throw new Error('There is no selected experiment to review.');
     if (notes.length > 2000) throw new Error('Notes must be under 2,000 characters.');
+    if (pending.payload.cycleId) {
+      await makeCultivationBridge(profile.id, events).integrate({
+        cycleId: pending.payload.cycleId,
+        experimentId: pending.payload.experimentId,
+        rating,
+        notes: notes.trim(),
+        observationIds: observations
+          .filter(o => o.experimentId === pending.payload.experimentId)
+          .map(o => o.id)
+      });
+    }
     await journeyJournal.append(profile.id, 'review', {
+      cycleId: pending.payload.cycleId || null,
       goalEventId: currentGoal.id,
       recommendationEventId: pending.id,
       experimentId: pending.payload.experimentId,
@@ -161,8 +185,10 @@ export default function AdaptivePathScreen({ navigation, route }) {
     {currentGoal && <View style={styles.card}>
       <Text style={styles.caption}>CURRENT INVESTIGATION</Text>
       <Text style={styles.cardTitle}>{currentGoal.payload.text}</Text>
-      <Text style={styles.meta}>The available actions come from your existing Lab
-        catalog. This module chooses among them; it is not the full Synthia planner.</Text>
+      <Text style={styles.meta}>Your original SynthAi Cultivation Engine now
+        records each investigation from observation through action and outcome.
+        Experiment candidates currently come from your existing Lab catalog;
+        the full state-space planning runtime is still separate.</Text>
       {!pending ? <Action label="Choose Next Experiment" disabled={busy} onPress={chooseNext}/>
         : <View>
           <Text style={styles.section}>Chosen by your feedback history</Text>
@@ -197,8 +223,9 @@ export default function AdaptivePathScreen({ navigation, route }) {
     </Text>}
     {!!error && <Text style={styles.error}>{error}</Text>}
     <Text style={styles.disclaimer}>
-      Pilot scope: one-device profiles and local memory. No invitation, account sync,
-      shared Honcho service, or SocialCircle neural model is represented as connected.
+      Pilot scope: local profiles and append-only memory. Manual friend updates
+      are available in Community, but not real-time synchronization.
+      Honcho and the SocialCircle neural models are not connected.
       A recommendation is a hypothesis until real outcomes support it.
     </Text>
   </ScrollView>;
