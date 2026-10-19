@@ -67,9 +67,9 @@ export function feedItems(events, currentId) {
     .filter(e => e.profileId === currentId &&
       (e.type === 'peer-outgoing' || e.type === 'peer-incoming'))
     .map(e => e.type === 'peer-outgoing'
-      ? {id:e.id, senderId:currentId, senderName:'Me', text:e.payload?.text,
+      ? {id:e.id, messageId:e.id, senderId:currentId, senderName:'Me', text:e.payload?.text,
          createdAt:e.createdAt, source:'mine'}
-      : {id:e.id,senderId:e.payload?.senderId,senderName:e.payload?.senderName,
+      : {id:e.id,messageId:e.payload?.messageId,senderId:e.payload?.senderId,senderName:e.payload?.senderName,
          text:e.payload?.text,createdAt:e.payload?.createdAt,source:'imported'})
     .sort((a,b)=>b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id));
 }
