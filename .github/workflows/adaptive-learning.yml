@@ -20,3 +20,17 @@ jobs:
           node-version: '20'
       - name: Test deterministic selection and profile isolation
         run: node --test tests/adaptive-lab-planner.test.mjs
+  android-js-bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install existing Expo dependencies
+        run: npm install --no-audit --no-fund --legacy-peer-deps
+      - name: Build the Android JavaScript bundle
+        run: npx expo export --platform android --output-dir dist-android
