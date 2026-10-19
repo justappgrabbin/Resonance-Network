@@ -1,0 +1,48 @@
+name: Build Resonance Android debug APK
+on:
+  push:
+    branches:
+      - feature/resonance-adaptive-learning-20261019
+    paths:
+      - 'App.js'
+      - 'AdaptivePathScreen.js'
+      - 'CommunityScreen.js'
+      - 'Core/**'
+      - 'LabScreen.js'
+      - 'ProfileScreens.js'
+      - 'SystemScreens.js'
+      - 'package.json'
+      - 'app.json'
+      - '.github/workflows/android-debug-apk.yml'
+  workflow_dispatch:
+jobs:
+  android-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      EXPO_NO_TELEMETRY: '1'
+      CI: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install exact project dependencies
+        run: npm install --no-audit --no-fund --legacy-peer-deps
+      - name: Generate native Android project from existing Expo app
+        run: npx expo prebuild --platform android --no-install --clean
+      - name: Build locally installable Android debug APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: resonance-network-android-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
