@@ -1,0 +1,66 @@
+name: Build Resonance Android standalone test APK
+on:
+  push:
+    branches:
+      - feature/resonance-adaptive-learning-20261019
+    paths:
+      - 'App.js'
+      - 'AdaptivePathScreen.js'
+      - 'CommunityScreen.js'
+      - 'Core/**'
+      - 'LabScreen.js'
+      - 'ProfileScreens.js'
+      - 'SystemScreens.js'
+      - 'package.json'
+      - 'app.json'
+      - '.github/workflows/android-debug-apk.yml'
+  workflow_dispatch:
+jobs:
+  android-standalone-test-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      EXPO_NO_TELEMETRY: '1'
+      CI: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install exact project dependencies
+        run: npm install --no-audit --no-fund --legacy-peer-deps
+      - name: Restore existing family artwork for missing Expo image paths
+        run: |
+          mkdir -p assets
+          curl --fail --location --retry 3 --silent --show-error \
+            https://raw.githubusercontent.com/justappgrabbin/Synthai2/main/client/public/icons/icon-512.png \
+            -o assets/icon.png
+          test -s assets/icon.png
+          cp assets/icon.png assets/adaptive-icon.png
+          cp assets/icon.png assets/splash.png
+          cp assets/icon.png assets/favicon.png
+      - name: Generate native Android project from existing Expo app
+        run: npx expo prebuild --platform android --no-install --clean
+      - name: Build standalone Android release variant with embedded JS
+        run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
+      - name: Verify JS bundle is embedded and test APK is signed
+        run: |
+          APK=$(find android/app/build/outputs/apk/release -name '*.apk' | head -n 1)
+          test -n "$APK"
+          unzip -l "$APK" | grep -q 'assets/index.android.bundle'
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)
+          test -n "$SIGNER"
+          "$SIGNER" verify "$APK"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: resonance-network-android-standalone-test-apk
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 14

@@ -18,7 +18,8 @@ const Stepper = ({ label, value, onChange }) => (
 
 export default function LabScreen({ route, navigation }) {
   const [profile, setProfile] = useState(route.params?.profile || null);
-  const [selected, setSelected] = useState(LAB_EXPERIMENTS[0]);
+  const [selected, setSelected] = useState(() =>
+    LAB_EXPERIMENTS.find(exp => exp.id === route.params?.experimentId) || LAB_EXPERIMENTS[0]);
   const [metrics, setMetrics] = useState({ joy:5, trust:5, clarity:5, energy:5, completion:5, synchronicity:5, volatility:5 });
   const [notes, setNotes] = useState('');
   const [logs, setLogs] = useState([]);

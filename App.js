@@ -8,6 +8,8 @@ import { profileStore } from './Core/ProfileStore';
 import { ProfileCreationScreen, ProfileScreen, MatchingScreen } from './ProfileScreens';
 import { HumanDesignScreen, AstrologyScreen } from './SystemScreens';
 import LabScreen from './LabScreen';
+import AdaptivePathScreen from './AdaptivePathScreen';
+import CommunityScreen from './CommunityScreen';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +32,8 @@ export default function App() {
       <Stack.Screen name="HumanDesign" component={HumanDesignScreen} options={{title:'Human Design'}}/>
       <Stack.Screen name="Astrology" component={AstrologyScreen}/>
       <Stack.Screen name="Lab" component={LabScreen} options={{title:'Cynthia Lab'}}/>
+      <Stack.Screen name="AdaptivePath" component={AdaptivePathScreen} options={{title:'My Adaptive Path'}}/>
+      <Stack.Screen name="Community" component={CommunityScreen} options={{title:'Community'}}/>
       <Stack.Screen name="Matches" component={MatchingScreen}/>
     </Stack.Navigator>
   </NavigationContainer>;
@@ -47,6 +51,8 @@ function HomeScreen({navigation}){
     <HomeButton title={profile?'Open Current Profile':'Create Profile'} onPress={()=>profile?navigation.navigate('Profile',{profile}):navigation.navigate('CreateProfile')}/>
     <View style={styles.tileRow}><Tile title="Human Design" caption="BodyGraph mechanics" onPress={()=>go('HumanDesign')}/><Tile title="Astrology" caption="Triad engine" onPress={()=>go('Astrology')}/></View>
     <View style={styles.tileRow}><Tile title="Cynthia Lab" caption="6 connected experiments" onPress={()=>go('Lab')}/><Tile title="Matches" caption="Real saved profiles" onPress={()=>go('Matches')}/></View>
+    <HomeButton title="My Adaptive Path · Learn From Real Outcomes" onPress={()=>go('AdaptivePath')}/>
+    <HomeButton title="Community · Share and Receive Friend Updates" onPress={()=>go('Community')}/>
     <Text style={styles.homeNote}>No random gates, random waveforms, or random sample matches are used in the live path.</Text>
   </ScrollView>;
 }

@@ -12,24 +12,47 @@ export const LAB_EXPERIMENTS = [
 ];
 
 const ROOT = `${FileSystem.documentDirectory}ResonanceNetwork/data/`;
-const FILE = `${ROOT}lab-observations.json`;
+const FILE = `${ROOT}lab-observations.json`; // legacy read-only observation file
+const EVENTS_ROOT = `${ROOT}lab-observation-events/`;
+let observationCounter = 0;
 
 async function ensureRoot() {
   const info = await FileSystem.getInfoAsync(ROOT);
   if (!info.exists) await FileSystem.makeDirectoryAsync(ROOT, { intermediates: true });
 }
 
-async function readLogs() {
+async function ensureEventsRoot() {
   await ensureRoot();
-  const info = await FileSystem.getInfoAsync(FILE);
-  if (!info.exists) return [];
-  try { return JSON.parse(await FileSystem.readAsStringAsync(FILE)); }
-  catch (_) { return []; }
+  const info = await FileSystem.getInfoAsync(EVENTS_ROOT);
+  if (!info.exists) await FileSystem.makeDirectoryAsync(EVENTS_ROOT, { intermediates: true });
 }
 
-async function writeLogs(logs) {
-  await ensureRoot();
-  await FileSystem.writeAsStringAsync(FILE, JSON.stringify(logs, null, 2));
+async function readLogs() {
+  await ensureEventsRoot();
+  let original = [];
+  if ((await FileSystem.getInfoAsync(FILE)).exists) {
+    // Existing observations are preserved in-place. Never migrate by rewriting or deleting.
+    const parsed = JSON.parse(await FileSystem.readAsStringAsync(FILE));
+    if (!Array.isArray(parsed)) throw new Error('Original Lab observation file is not an array.');
+    original = parsed;
+  }
+  const names = (await FileSystem.readDirectoryAsync(EVENTS_ROOT))
+    .filter(name => /^obs-[0-9]+-[0-9]+-[0-9]+\.json$/.test(name));
+  const added = await Promise.all(names.map(async name =>
+    JSON.parse(await FileSystem.readAsStringAsync(EVENTS_ROOT + name))
+  ));
+  return [...original, ...added].sort((a, b) =>
+    String(a.createdAt || '').localeCompare(String(b.createdAt || '')) ||
+    String(a.id || '').localeCompare(String(b.id || '')));
+}
+
+async function writeObservation(record) {
+  await ensureEventsRoot();
+  const path = `${EVENTS_ROOT}${record.id}.json`;
+  if ((await FileSystem.getInfoAsync(path)).exists) {
+    throw new Error('Observation ID collision: history was not overwritten.');
+  }
+  await FileSystem.writeAsStringAsync(path, JSON.stringify(record));
 }
 
 export class LabEngine {
@@ -60,9 +83,9 @@ export class LabEngine {
   async logObservation({ experiment, profile, metrics, notes = '', transitState = null }) {
     const transit = transitState || this.getTransitState(profile);
     const evaluation = this.evaluate(experiment, profile, transit);
-    const logs = await readLogs();
+    observationCounter += 1;
     const record = {
-      id: `obs-${Date.now()}`,
+      id: `obs-${Date.now()}-${observationCounter}-${Math.floor(Math.random() * 1000000000)}`,
       createdAt: new Date().toISOString(),
       experimentId: experiment.id,
       profileId: profile?.id || null,
@@ -74,8 +97,7 @@ export class LabEngine {
       evaluation,
       transitAt: transit.at,
     };
-    logs.push(record);
-    await writeLogs(logs);
+    await writeObservation(record);
     return record;
   }
 
