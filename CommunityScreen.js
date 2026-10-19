@@ -8,6 +8,7 @@ import {journeyJournal} from './Core/JourneyJournal';
 import {
   alreadyReceived, decodePeerUpdate, encodePeerUpdate, feedItems
 } from './Core/PeerExchange';
+import { communityRelations, hasReviewedPeerMessage } from './Core/CommunityRelations';
 
 function Action({label,onPress,secondary=false,disabled=false}) {
   return <TouchableOpacity onPress={onPress} disabled={disabled}
@@ -96,6 +97,28 @@ export default function CommunityScreen({navigation}) {
     } finally {setBusy(false);}
   };
 
+  const recordReaction = async (item, rating) => {
+    if (!profile || busy || item.source !== 'imported') return;
+    setBusy(true);
+    try {
+      const events = await journeyJournal.list(profile.id);
+      if (hasReviewedPeerMessage(events, profile.id, {senderId:item.senderId,messageId:item.messageId})) {
+        Alert.alert('Already recorded','You have already evaluated this update.');
+        return;
+      }
+      await journeyJournal.append(profile.id,'peer-feedback',{
+        senderId:item.senderId,messageId:item.messageId,rating,
+        evidenceType:'local-person-self-report'
+      });
+      setHistory(await journeyJournal.list(profile.id));
+      setError('');
+    } catch(err) {
+      const msg=err?.message||String(err);
+      setError(msg);
+      Alert.alert('Could not record feedback',msg);
+    } finally {setBusy(false);}
+  };
+
   if (busy && !profile) return <View style={styles.center}>
     <ActivityIndicator color="#8df0d0"/>
   </View>;
@@ -105,6 +128,7 @@ export default function CommunityScreen({navigation}) {
   </View>;
 
   const feed=feedItems(history,profile.id);
+  const relations=communityRelations(history,profile.id);
   return <ScrollView style={styles.page} contentContainerStyle={styles.content}
     keyboardShouldPersistTaps="handled">
     <Text style={styles.eyebrow}>RESONANCE NETWORK · COMMUNITY</Text>
@@ -129,6 +153,15 @@ export default function CommunityScreen({navigation}) {
     <Action label="Import Update to My Community" secondary onPress={receive}
       disabled={busy||!paste.trim()}/>
 
+    <Text style={styles.section}>What our interactions taught us</Text>
+    <Text style={styles.privacy}>Only feedback you choose to submit is used.
+      This is a record of message usefulness, not a judgment of friendship or personality.</Text>
+    {relations.peers.map(peer=><View key={peer.senderId} style={styles.card}>
+      <Text style={styles.author}>{peer.name}</Text>
+      <Text style={styles.meta}>{peer.selfReportedFeedbackCount} explicit
+        {' '}message usefulness report(s) have updated Synthia's relational field.</Text>
+    </View>)}
+
     <Text style={styles.section}>My local community · {feed.length}</Text>
     {!feed.length&&<View style={styles.card}>
       <Text style={styles.meta}>Your shared updates and manually received updates will appear here.</Text>
@@ -137,6 +170,17 @@ export default function CommunityScreen({navigation}) {
       <Text style={styles.author}>{item.senderName}</Text>
       <Text style={styles.meta}>{item.source==='mine'?'Prepared on this phone':'Received by code · unverified sender'}</Text>
       <Text style={styles.body}>{item.text}</Text>
+      {item.source==='imported'&&!hasReviewedPeerMessage(
+        history,profile.id,{senderId:item.senderId,messageId:item.messageId}
+      )&&<View>
+        <Action label="This update helped me" disabled={busy}
+          onPress={()=>recordReaction(item,'helped')}/>
+        <Action label="This update wasn't useful for me" secondary disabled={busy}
+          onPress={()=>recordReaction(item,'not-helpful')}/>
+      </View>}
+      {item.source==='imported'&&hasReviewedPeerMessage(
+        history,profile.id,{senderId:item.senderId,messageId:item.messageId}
+      )&&<Text style={styles.privacy}>Your feedback was saved to the relationship history.</Text>}
       {item.source==='mine'&&<Action label="Share This Again" secondary
         disabled={busy} onPress={()=>{
           const original=history.find(e=>e.id===item.id);
