@@ -6,7 +6,14 @@ on:
   pull_request:
     paths:
       - 'Core/AdaptiveLabPlanner.js'
-      - 'tests/adaptive-lab-planner.test.mjs'
+      - 'tests/*.test.mjs'
+      - 'Core/CultivationBridge.js'
+      - 'Core/donors/SynthAiComputerExperience.js'
+      - 'Core/PeerExchange.js'
+      - 'CommunityScreen.js'
+      - 'AdaptivePathScreen.js'
+      - 'Core/JourneyJournal.js'
+      - 'App.js'
       - '.github/workflows/adaptive-learning.yml'
 jobs:
   adaptive-lab:
@@ -19,7 +26,7 @@ jobs:
         with:
           node-version: '20'
       - name: Test deterministic selection and profile isolation
-        run: node --test tests/adaptive-lab-planner.test.mjs
+        run: node --test tests/*.test.mjs
   android-js-bundle:
     runs-on: ubuntu-latest
     timeout-minutes: 15
