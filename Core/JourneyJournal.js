@@ -21,7 +21,7 @@ function eventId() {
 export const journeyJournal = {
   async append(profileId, type, payload = {}) {
     if (!profileId || typeof profileId !== 'string') throw new Error('A saved profile is required.');
-    if (!['goal','recommendation','review','cultivation-state','peer-outgoing','peer-incoming'].includes(type)) throw new Error('Unknown journal event type.');
+    if (!['goal','recommendation','review','cultivation-state','peer-outgoing','peer-incoming','peer-feedback'].includes(type)) throw new Error('Unknown journal event type.');
     await ensureRoot();
     let id = eventId();
     let path = `${ROOT}${id}.json`;
