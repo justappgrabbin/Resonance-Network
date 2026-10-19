@@ -1,4 +1,4 @@
-name: Build Resonance Android debug APK
+name: Build Resonance Android standalone test APK
 on:
   push:
     branches:
@@ -16,7 +16,7 @@ on:
       - '.github/workflows/android-debug-apk.yml'
   workflow_dispatch:
 jobs:
-  android-debug-apk:
+  android-standalone-test-apk:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -47,12 +47,20 @@ jobs:
           cp assets/icon.png assets/favicon.png
       - name: Generate native Android project from existing Expo app
         run: npx expo prebuild --platform android --no-install --clean
-      - name: Build locally installable Android debug APK
-        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - name: Build standalone Android release variant with embedded JS
+        run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
+      - name: Verify JS bundle is embedded and test APK is signed
+        run: |
+          APK=$(find android/app/build/outputs/apk/release -name '*.apk' | head -n 1)
+          test -n "$APK"
+          unzip -l "$APK" | grep -q 'assets/index.android.bundle'
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name apksigner | sort -V | tail -n 1)
+          test -n "$SIGNER"
+          "$SIGNER" verify "$APK"
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: resonance-network-android-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: resonance-network-android-standalone-test-apk
+          path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 14
