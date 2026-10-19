@@ -37,7 +37,7 @@ async function readLogs() {
     original = parsed;
   }
   const names = (await FileSystem.readDirectoryAsync(EVENTS_ROOT))
-    .filter(name => /^obs-[0-9]+-[0-9]+-[0-9]+\\.json$/.test(name));
+    .filter(name => /^obs-[0-9]+-[0-9]+-[0-9]+\.json$/.test(name));
   const added = await Promise.all(names.map(async name =>
     JSON.parse(await FileSystem.readAsStringAsync(EVENTS_ROOT + name))
   ));
